@@ -28,4 +28,4 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/GameVaultBackend:latest
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/gamevault_backend
