@@ -24,3 +24,12 @@ export const credentials = pgTable('credentials', {
 export const credentialsRelations = relations(credentials, ({ one }) => ({
   user: one(users, { fields: [credentials.userId], references: [users.id] }),
 }));
+
+export const address = pgTable('address', {
+  id: uuid().primaryKey().defaultRandom(),
+  country:varchar({length:20}),
+  state: varchar({length:20}).notNull(),
+  city: varchar({length:30}).notNull(),
+  street: varchar({length:40}).notNull(),
+  cp:varchar({length:20}).notNull()
+})
