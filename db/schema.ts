@@ -40,7 +40,7 @@ export const usersRelations = relations(users, ({ many }) => ({
 
 export const orders = pgTable('orders', {
   id,
-  time_stamp: timestamp().defaultNow().notNull(),
+  created_at: timestamp('created_at').notNull().defaultNow(),
   userId: uuid('user_id'),
   ordersDetailsId: uuid('orders_detail_id'),
 });
