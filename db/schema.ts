@@ -80,6 +80,8 @@ export const products = pgTable('products', {
 export const productsRelations = relations(products, ({ many, one }) => ({
   ordersDetails: many(orders),
   phisicalProduct: one(phisicalProduct),
+  digitalProduct: one(digitalProduct),
+  images: many(images)
 }));
 
 export const phisicalProduct = pgTable('phisical_product', {
@@ -144,3 +146,13 @@ export const genders = pgTable('genders', {
 export const gendersRelations = relations(genders, ({ many }) => ({
   products: many(phisicalProduct),
 }));
+
+export const images = pgTable('images', {
+  assetId:varchar().primaryKey(),
+  url: varchar().notNull(),
+  productId:uuid('product_id').notNull()
+})
+
+export const imagesRelations = relations(images, ({one}) => ({
+  product: one(products,{fields:[images.productId], references:[products.id]})
+}))
