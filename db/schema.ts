@@ -7,7 +7,6 @@ import {
   uuid,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { validateHeaderName } from 'http';
 
 const id = uuid().primaryKey().defaultRandom();
 
@@ -123,7 +122,7 @@ export const categoriesRelations = relations(categories, ({ one, many }) => ({
 export const digitalProduct = pgTable('digital_product', {
   id,
   cdKey: varchar({ length: 20 }).notNull(),
-  genderId: uuid('gender_id'),
+  genreId: uuid('genre_id'),
   productId: uuid('product_id'),
 });
 
@@ -132,18 +131,18 @@ export const digitalProductRelations = relations(digitalProduct, ({ one }) => ({
     fields: [digitalProduct.productId],
     references: [products.id],
   }),
-  gender: one(genders, {
-    fields: [digitalProduct.genderId],
-    references: [genders.id],
+  genre: one(genres, {
+    fields: [digitalProduct.genreId],
+    references: [genres.id],
   }),
 }));
 
-export const genders = pgTable('genders', {
+export const genres = pgTable('genres', {
   id,
   name: varchar({ length: 15 }).notNull(),
 });
 
-export const gendersRelations = relations(genders, ({ many }) => ({
+export const genresRelations = relations(genres, ({ many }) => ({
   products: many(phisicalProduct),
 }));
 

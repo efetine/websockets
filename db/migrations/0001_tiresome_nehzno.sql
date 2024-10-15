@@ -19,11 +19,11 @@ CREATE TABLE IF NOT EXISTS "categories" (
 CREATE TABLE IF NOT EXISTS "digital_product" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"cdKey" varchar(20) NOT NULL,
-	"gender_id" uuid,
+	"genre_id" uuid,
 	"product_id" uuid
 );
 --> statement-breakpoint
-CREATE TABLE IF NOT EXISTS "genders" (
+CREATE TABLE IF NOT EXISTS "genres" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"name" varchar(15) NOT NULL
 );
