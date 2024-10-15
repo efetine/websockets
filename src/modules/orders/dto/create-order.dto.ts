@@ -8,7 +8,7 @@ class products {
     @IsPositive()
     quantity:number
 }
-export class OrdersDto {
+export class CreateOrderDto {
   @IsUUID()
   userId: string;
 
