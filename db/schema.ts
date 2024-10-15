@@ -74,6 +74,8 @@ export const products = pgTable('products', {
   price: integer().notNull(),
   description: varchar({ length: 50 }),
   type: productTypeEnum().notNull(),
+  stock: integer().notNull(),
+  name: varchar({ length: 15 }).notNull()
 });
 
 export const productsRelations = relations(products, ({ many, one }) => ({
