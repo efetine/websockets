@@ -8,6 +8,13 @@
       "when": 1728880223136,
       "tag": "0000_red_supreme_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1728971386500,
+      "tag": "0001_tiresome_nehzno",
+      "breakpoints": true
     }
   ]
 }
