@@ -3,17 +3,22 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   BadRequestException,
   ParseUUIDPipe,
   Put,
+  Query,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { InsertProduct, productInsertSchema } from '../../db/schema';
+import { InsertProduct, productInsertSchema } from '../../../db/schema';
+import { number } from 'zod';
+import { LimitPipe } from './pipes/limitPage.pipe';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('products')
+@ApiTags('Products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -27,8 +32,8 @@ export class ProductsController {
   }
 
   @Get()
-  async findAll() {
-    return await this.productsService.findAll();
+  async findAll(@Query('page', ParseIntPipe) page: number, @Query('limit', LimitPipe) limit: number) {
+    return await this.productsService.findAll({page,limit});
   }
 
   @Get(':id')

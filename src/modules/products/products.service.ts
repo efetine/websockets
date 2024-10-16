@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
-import { InsertProduct } from '../../db/schema';
+import { InsertProduct } from '../../../db/schema';
 
 @Injectable()
 export class ProductsService {
@@ -10,8 +10,8 @@ export class ProductsService {
     return await this.productsRepository.createProduct(body);
   }
 
-  async findAll() {
-    return await this.productsRepository.findAllProducts();
+  async findAll({page, limit}:{page:number, limit:number}) {
+    return await this.productsRepository.findAllProducts({page, limit})
   }
 
   async findOne(id: string) {
