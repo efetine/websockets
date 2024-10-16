@@ -32,7 +32,9 @@ export const users = pgTable('user', {
   emailVerified: timestamp('email_verified', {
     mode: 'date',
     withTimezone: true,
-  }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  })
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
   image: varchar('image', { length: 255 }).notNull(),
 });
 
@@ -81,9 +83,9 @@ export const products = pgTable('products', {
   type: productTypeEnum().notNull(),
   stock: integer().notNull(),
   name: varchar({ length: 100 }).notNull(),
-  categoryId: varchar({ length: 255 }).references(
-    () => categories.id,
-  ).notNull(),
+  categoryId: varchar({ length: 255 })
+    .references(() => categories.id)
+    .notNull(),
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
@@ -94,10 +96,12 @@ export const productsRelations = relations(products, ({ one }) => ({
 }));
 
 export const productInsertSchema = createInsertSchema(products, {
+  name: (schema) => schema.name.min(3).max(100),
   price: (schema) => schema.price,
   description: (schema) => schema.description.max(255),
+  type: (schema) => schema.type,
   stock: (schema) => schema.stock,
-  name: (schema) => schema.name.min(3).max(100),
+  categoryId: (schema) => schema.categoryId,
 });
 export type InsertProduct = z.infer<typeof productInsertSchema>;
 

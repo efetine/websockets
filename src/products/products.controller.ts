@@ -15,33 +15,32 @@ import { InsertProduct, productInsertSchema } from '../../db/schema';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post('/create')
-  createProduct(@Body() body: InsertProduct) {
+  @Post()
+  async create(@Body() body: InsertProduct) {
     const validation = productInsertSchema.safeParse(body);
-    if (validation.success) {
-      return this.productsService.create(validation.data);
-    } else {
+    if (!validation.success) {
       throw new BadRequestException(validation.error);
     }
+    return await this.productsService.create(validation.data);
   }
 
   @Get()
-  findAll() {
-    return this.productsService.findAll();
+  async findAll() {
+    return await this.productsService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.productsService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    return await this.productsService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string) {
-    return this.productsService.update(+id);
+  async update(@Param('id') id: string, @Body() body: Partial<InsertProduct>) {
+    return await this.productsService.update(id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(+id);
+  async remove(@Param('id') id: string) {
+    return await this.productsService.remove(id);
   }
 }

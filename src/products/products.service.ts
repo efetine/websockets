@@ -4,25 +4,33 @@ import { InsertProduct } from '../../db/schema';
 
 @Injectable()
 export class ProductsService {
-  constructor(private readonly productsRepository: ProductsRepository) { }
-  
-  create(body: InsertProduct) {
-    return this
+  constructor(private readonly productsRepository: ProductsRepository) {}
+
+  async create(body: InsertProduct) {
+    return await this.productsRepository.create(body);
   }
 
   async findAll() {
-    return await this.productsRepository.findAll()
+    return await this.productsRepository.findAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    const product = await this.productsRepository.findOne(id);
+    if (!product) {
+      throw new Error(`Product with id ${id} not found`);
+    }
+    return product;
   }
 
-  update(id: number ) {
-    return `This action updates a #${id} product`;
+  async update(id: string, productData: Partial<InsertProduct>) {
+    return await this.productsRepository.update(id, productData);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+  async remove(id: string) {
+    const product = await this.productsRepository.remove(id);
+    if (!product) {
+      throw new Error(`Product with id ${id} not found`);
+    }
+    return product;
   }
 }
