@@ -15,6 +15,7 @@ export class ProductsRepository {
   }
 
   async create(productData: InsertProduct) {
+    
     return await db.insert(products).values(productData);
   }
 

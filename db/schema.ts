@@ -103,7 +103,7 @@ export const productInsertSchema = createInsertSchema(products, {
   stock: (schema) => schema.stock,
   categoryId: (schema) => schema.categoryId,
 });
-export type InsertProduct = z.infer<typeof productInsertSchema>;
+export type InsertProduct = (typeof products.$inferInsert);
 
 // export const productsRelations = relations(products, ({ many, one }) => ({
 //   ordersDetails: many(orders),

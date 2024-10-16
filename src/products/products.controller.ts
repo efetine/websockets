@@ -21,7 +21,7 @@ export class ProductsController {
     if (!validation.success) {
       throw new BadRequestException(validation.error);
     }
-    return await this.productsService.create(validation.data);
+    return await this.productsService.create(validation.data as InsertProduct);
   }
 
   @Get()
