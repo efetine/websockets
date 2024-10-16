@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { db } from '../config/db';
 import { InsertProduct, products } from '../../db/schema';
 import { eq } from 'drizzle-orm';
@@ -7,26 +11,32 @@ import { eq } from 'drizzle-orm';
 export class ProductsRepository {
   constructor() {}
 
-  async findAll() {
-    return await db.query.products.findMany({
+  async findAllProducts() {
+    const products = await db.query.products.findMany({
       with: { category: { columns: { name: true } } },
-      columns: { categoryId: false },
+      where: (products: any, { gt }: any) => gt(products.stock, 1),
+      columns: { categoryId: false, description: false },
     });
+    if (!products) throw new NotFoundException('Products Not Found');
+    return products;
   }
 
-  async create(productData: InsertProduct) {
-    
-    return await db.insert(products).values(productData);
+  async createProduct(productData: InsertProduct) {
+    const product = await db.insert(products).values(productData).returning();
+    if (!product) throw new BadRequestException('Error creando el producto');
+    return product;
   }
 
-  async findOne(id: string) {
-    return await db.query.products.findFirst({
+  async findOneById(id: string): Promise<InsertProduct> {
+    const product = await db.query.products.findFirst({
       where: (fields) => eq(fields.id, id),
     });
+    if (!product) throw new NotFoundException("Product not Found")
+    return product;
   }
 
-  async update(id: string, productData: Partial<InsertProduct>) {
-    return await db
+  async updateProduct(id: string, productData: Partial<InsertProduct>) {
+    const updateProduct = await db
       .update(products)
       .set(productData)
       .where(eq(products.id, id))
@@ -39,9 +49,15 @@ export class ProductsRepository {
         name: products.name,
         categoryId: products.categoryId,
       });
+    if (updateProduct.length == 0)
+      throw new NotFoundException('Product ID Not Found');
+    return updateProduct;
   }
 
-  async remove(id: string) {
-    return await db.delete(products).where(eq(products.id, id));
+  async removeProduct(id: string) {
+    const rowCount = (await db.delete(products).where(eq(products.id, id)))
+      .rowCount;
+    if (rowCount == 0) throw new NotFoundException('Product not Found');
+    return { message: 'Product deleted Successfuly' };
   }
 }

@@ -7,30 +7,22 @@ export class ProductsService {
   constructor(private readonly productsRepository: ProductsRepository) {}
 
   async create(body: InsertProduct) {
-    return await this.productsRepository.create(body);
+    return await this.productsRepository.createProduct(body);
   }
 
   async findAll() {
-    return await this.productsRepository.findAll();
+    return await this.productsRepository.findAllProducts();
   }
 
   async findOne(id: string) {
-    const product = await this.productsRepository.findOne(id);
-    if (!product) {
-      throw new Error(`Product with id ${id} not found`);
-    }
-    return product;
+    return await this.productsRepository.findOneById(id);
   }
 
   async update(id: string, productData: Partial<InsertProduct>) {
-    return await this.productsRepository.update(id, productData);
+    return await this.productsRepository.updateProduct(id, productData);
   }
 
   async remove(id: string) {
-    const product = await this.productsRepository.remove(id);
-    if (!product) {
-      throw new Error(`Product with id ${id} not found`);
-    }
-    return product;
+    return await this.productsRepository.removeProduct(id);
   }
 }
