@@ -12,6 +12,8 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
+if(!POSTGRES_URL) throw new Error('POSTGRES_URL is not defined');
+
 const conn = globalForDb.conn ?? postgres(POSTGRES_URL);
 if (process.env.NODE_ENV !== 'production') globalForDb.conn = conn;
 
