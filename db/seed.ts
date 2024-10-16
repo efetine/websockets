@@ -1,6 +1,6 @@
 import { createInsertSchema } from 'drizzle-zod';
 import { db } from './db';
-import { products, categories, users } from './schema';
+import { products, categories, users, InsertProduct } from './schema';
 import { faker } from '@faker-js/faker';
 
 const main = async () => {
@@ -36,7 +36,6 @@ const main = async () => {
     usersData.push({
       name: faker.person.fullName(),
       email: faker.internet.email(),
-      emailVerified: faker.date.recent({ days: 10 }),
       image: faker.image.avatar(),
     });
   }

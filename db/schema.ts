@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { isNotNull, relations } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import {
   integer,
@@ -27,13 +27,13 @@ export const users = pgTable('user', {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: varchar('name', { length: 255 }),
+  name: varchar('name', { length: 255 }).notNull(),
   email: varchar('email', { length: 255 }).notNull(),
   emailVerified: timestamp('email_verified', {
     mode: 'date',
     withTimezone: true,
-  }).default(sql`CURRENT_TIMESTAMP`),
-  image: varchar('image', { length: 255 }),
+  }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+  image: varchar('image', { length: 255 }).notNull(),
 });
 
 // export const usersRelations = relations(users, ({ many }) => ({
@@ -77,13 +77,13 @@ export const products = pgTable('products', {
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   price: integer().notNull(),
-  description: varchar({ length: 255 }),
+  description: varchar({ length: 255 }).notNull(),
   type: productTypeEnum().notNull(),
   stock: integer().notNull(),
   name: varchar({ length: 100 }).notNull(),
-  categoryId: varchar('category_id', { length: 255 }).references(
+  categoryId: varchar({ length: 255 }).references(
     () => categories.id,
-  ),
+  ).notNull(),
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
@@ -94,9 +94,9 @@ export const productsRelations = relations(products, ({ one }) => ({
 }));
 
 export const productInsertSchema = createInsertSchema(products, {
-  price: (schema) => schema.price.positive(),
+  price: (schema) => schema.price,
   description: (schema) => schema.description.max(255),
-  stock: (schema) => schema.stock.nonnegative(),
+  stock: (schema) => schema.stock,
   name: (schema) => schema.name.min(3).max(100),
 });
 export type InsertProduct = z.infer<typeof productInsertSchema>;

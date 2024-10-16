@@ -10,8 +10,8 @@ export class ProductsService {
     return this
   }
 
-  findAll() {
-    return `This action returns all products`;
+  async findAll() {
+    return await this.productsRepository.findAll()
   }
 
   findOne(id: number) {
