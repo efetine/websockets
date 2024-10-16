@@ -4,7 +4,6 @@ import { products, categories, users } from './schema';
 import { faker } from '@faker-js/faker';
 
 const main = async () => {
-
   const categoriesData: (typeof categories.$inferInsert)[] = [];
 
   const productsData: (typeof products.$inferInsert)[] = [];
@@ -17,6 +16,11 @@ const main = async () => {
     });
   }
 
+  const resultCategories = await db
+    .insert(categories)
+    .values(categoriesData)
+    .returning({ id: users.id });
+
   for (let i = 0; i < 50; i++) {
     productsData.push({
       name: `${faker.word.adjective().toLowerCase()} ${faker.word.noun().toLowerCase()}`,
@@ -24,6 +28,7 @@ const main = async () => {
       description: faker.lorem.sentence(),
       type: faker.helpers.arrayElement(['DIGITAL', 'PHISICAL']),
       stock: faker.number.int({ min: 1, max: 100 }),
+      categoryId: faker.helpers.arrayElement(resultCategories).id,
     });
   }
 
@@ -31,18 +36,16 @@ const main = async () => {
     usersData.push({
       name: faker.person.fullName(),
       email: faker.internet.email(),
-      emailVerified: faker.date.recent({days:10}),
+      emailVerified: faker.date.recent({ days: 10 }),
       image: faker.image.avatar(),
     });
   }
-  
-  await db.insert(categories).values(categoriesData);
 
   await db.insert(products).values(productsData);
 
   await db.insert(users).values(usersData);
 
   await db.$client.end();
-}
+};
 
 main();
