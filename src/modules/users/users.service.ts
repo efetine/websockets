@@ -8,6 +8,7 @@ import * as schema from '../../../db/schema';
 @Injectable()
 export class UsersService {
   constructor(@Inject(drizzleAsyncProvider) private db: NodePgDatabase) {}
+
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
