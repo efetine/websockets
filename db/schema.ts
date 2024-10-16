@@ -8,7 +8,6 @@ import {
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
-import { db } from './db';
 
 // export const roleEnum = pgEnum('role_enum', [
 //   'CUSTOMER',
@@ -83,16 +82,6 @@ export const products = pgTable('products', {
   name: varchar({ length: 100 }).notNull(),
 });
 
-export const productTypeEnumZod = z.enum(['DIGITAL', 'PHISICAL']);
-
-const baseProductSchema = z.object({
-  id: z.string().uuid().optional(),
-  price: z.number().int().positive(),
-  description: z.string().max(255).optional(),
-  type: productTypeEnumZod,
-  stock: z.number().int().nonnegative(),
-  name: z.string().min(3).max(100),
-});
 export const productInsertSchema = createInsertSchema(products, {
   price: (schema) => schema.price.positive(),
   description: (schema) => schema.description.max(255),
@@ -100,29 +89,6 @@ export const productInsertSchema = createInsertSchema(products, {
   name: (schema) => schema.name.min(3).max(100),
 });
 export type InsertProduct = z.infer<typeof productInsertSchema>;
-
-const insertProduct = async (body: InsertProduct) => {
-  const validation = productInsertSchema.safeParse(body);
-
-  if (validation.success) {
-    await db.insert(products).values([validation.data]);
-  } else {
-    throw new Error('Validation Failed');
-  }
-};
-
-/* const insertCategorySchema = createInsertSchema(categories, {
-  name: (schema) => schema.name.min(3).max(50),
-});
-export type InsertCategory = z.infer<typeof insertCategorySchema>;
-
-const fn = (body: InsertCategory) => {
-  const validation = insertCategorySchema.safeParse(body);
-
-  if (validation.success === true) {
-    db.insert(categories).values([validation.data]);
-  }
-}; */
 
 // export const productsRelations = relations(products, ({ many, one }) => ({
 //   ordersDetails: many(orders),
@@ -165,14 +131,6 @@ const insertCategorySchema = createInsertSchema(categories, {
   name: (schema) => schema.name.min(3).max(50),
 });
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
-
-const fn = (body: InsertCategory) => {
-  const validation = insertCategorySchema.safeParse(body);
-
-  if (validation.success === true) {
-    db.insert(categories).values([validation.data]);
-  }
-};
 
 // export const categoriesRelations = relations(categories, ({ one, many }) => ({
 //   father: one(categories, {

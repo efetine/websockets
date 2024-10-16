@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
+import { InsertProduct } from '../../db/schema';
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly productsRepository: ProductsRepository) { }
   
-  createDigital() {
-    return
+  create(body: InsertProduct) {
+    return this
   }
 
   findAll() {

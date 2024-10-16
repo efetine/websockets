@@ -6,16 +6,23 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
+import { InsertProduct, productInsertSchema } from '../../db/schema';
 
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Post('/digital')
-  createDigitalProduct() {
-    return this.productsService.createDigital();
+  @Post('/create')
+  createProduct(@Body() body: InsertProduct) {
+    const validation = productInsertSchema.safeParse(body);
+    if (validation.success) {
+      return this.productsService.create(validation.data);
+    } else {
+      throw new BadRequestException(validation.error);
+    }
   }
 
   @Get()
