@@ -7,6 +7,7 @@ import {
 import { db } from '../../config/db';
 import { InsertProduct, products } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { any } from 'zod';
 
 @Injectable()
 export class ProductsRepository {
@@ -71,8 +72,7 @@ export class ProductsRepository {
   }
 
   async removeProduct(id: string): Promise<{ message: string }> {
-    const rowCount = (await db.delete(products).where(eq(products.id, id)))
-      .rowCount;
+    const rowCount = (await db.update(products).set({active:false} as any).where(eq(products.id, id))).rowCount;
     if (rowCount == 0) throw new NotFoundException('Product not Found');
     return { message: 'Product deleted Successfuly' };
   }

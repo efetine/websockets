@@ -1,6 +1,4 @@
 import { relations } from 'drizzle-orm';
-import { sql } from 'drizzle-orm';
-import { index } from 'drizzle-orm/pg-core';
 import { boolean } from 'drizzle-orm/pg-core';
 import { text } from 'drizzle-orm/pg-core';
 import { primaryKey } from 'drizzle-orm/pg-core';
@@ -156,8 +154,9 @@ export const products = pgTable('products', {
   categoryId: varchar({ length: 255 })
     .references(() => categories.id)
     .notNull(),
-  imageUrl: varchar({ length: 255 }).notNull(),
-  active: boolean().default(true),
+  imageUrl: varchar({ length: 255 })
+    .notNull(),
+  active: boolean().notNull().$default(()=>true),
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
