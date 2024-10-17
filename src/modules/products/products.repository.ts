@@ -18,15 +18,18 @@ export class ProductsRepository {
     page: number;
     limit: number;
   }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[]> {
-    const products = await db.query.products.findMany({
-      with: { category: { columns: { name: true } } },
-      where: (products: any, { gt }: any) => gt(products.stock, 1),
-      columns: { categoryId: false, description: false, stock: false },
-      limit:limit,
-      offset: (page - 1) * limit
-    }).catch((err) => {
-      throw new BadRequestException('There are no more products available');
-    });
+    const products = await db.query.products
+      .findMany({
+        with: { category: { columns: { name: true } } },
+        where: (products: any, { gt, eq, and }: any) =>
+          and(gt(products.stock, 1), eq(products.active, true)),
+        columns: { categoryId: false, description: false, stock: false },
+        limit: limit,
+        offset: (page - 1) * limit,
+      })
+      .catch((err) => {
+        throw new BadRequestException('There are no more products available');
+      });
     if (products.length === 0)
       throw new NotFoundException('Products Not Found');
     return products;
@@ -40,7 +43,8 @@ export class ProductsRepository {
 
   async findOneById(id: string): Promise<InsertProduct> {
     const product = await db.query.products.findFirst({
-      where: (fields) => eq(fields.id, id),
+      where: (products, { gt, eq, and }: any) =>
+        and(gt(products.stock, 1), eq(products.active, true), eq(products.id, id)),
       with: { category: true },
     });
     if (!product) throw new NotFoundException('Product not Found');
@@ -70,7 +74,12 @@ export class ProductsRepository {
   }
 
   async removeProduct(id: string): Promise<{ message: string }> {
-    const rowCount = (await db.update(products).set({active:false} as any).where(eq(products.id, id))).rowCount;
+    const rowCount = (
+      await db
+        .update(products)
+        .set({ active: false })
+        .where(eq(products.id, id))
+    ).rowCount;
     if (rowCount == 0) throw new NotFoundException('Product not Found');
     return { message: 'Product deleted Successfuly' };
   }
