@@ -1,13 +1,14 @@
-import { db } from './db';
-import { products, categories, users } from './schema';
 import { faker } from '@faker-js/faker';
+
+import { db } from '../src/config/db';
+import { products, categories, users, type CreateUserDto } from './schema';
 
 const main = async () => {
   const categoriesData: (typeof categories.$inferInsert)[] = [];
 
-  const productsData: (typeof products.$inferInsert)[] = []
+  const productsData: (typeof products.$inferInsert)[] = [];
 
-  const usersData: (typeof users.$inferInsert)[] = [];
+  const usersData: CreateUserDto[] = [];
 
   for (let i = 0; i < 10; i++) {
     categoriesData.push({

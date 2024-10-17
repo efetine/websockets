@@ -1,6 +1,9 @@
 import { relations } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import { index } from 'drizzle-orm/pg-core';
 import { boolean } from 'drizzle-orm/pg-core';
+import { text } from 'drizzle-orm/pg-core';
+import { primaryKey } from 'drizzle-orm/pg-core';
 import {
   integer,
   pgEnum,
@@ -8,7 +11,7 @@ import {
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
 // export const roleEnum = pgEnum('role_enum', [
@@ -24,21 +27,86 @@ export const productTypeEnum = pgEnum('type_product_enum', [
 ]);
 
 export const users = pgTable('user', {
-  id: varchar('id', { length: 255 })
-    .notNull()
+  id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  name: varchar('name', { length: 255 }).notNull(),
-  email: varchar('email', { length: 255 }).notNull(),
-  emailVerified: timestamp('email_verified', {
-    mode: 'date',
-    withTimezone: true,
-  })
-    .default(sql`CURRENT_TIMESTAMP`)
-    .notNull(),
-  image: varchar('image', { length: 255 }).notNull(),
-  active: boolean().default(true),
+  name: text('name'),
+  email: text('email').unique().notNull(),
+  emailVerified: timestamp('emailVerified', { mode: 'date' }),
+  password: text('password'),
+  image: text('image').default('default_profile_picture.png').notNull(),
 });
+
+const insertUserSchema = createInsertSchema(users);
+export type CreateUserDto = z.infer<typeof insertUserSchema>;
+
+export const accounts = pgTable(
+  'account',
+  {
+    userId: text('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // type: text('type').$type<AdapterAccountType>().notNull(),
+    type: text('type').notNull(),
+    provider: text('provider').notNull(),
+    providerAccountId: text('providerAccountId').notNull(),
+    refresh_token: text('refresh_token'),
+    access_token: text('access_token'),
+    expires_at: integer('expires_at'),
+    token_type: text('token_type'),
+    scope: text('scope'),
+    id_token: text('id_token'),
+    session_state: text('session_state'),
+  },
+  (account) => ({
+    compoundKey: primaryKey({
+      columns: [account.provider, account.providerAccountId],
+    }),
+  }),
+);
+
+export const sessions = pgTable('session', {
+  sessionToken: text('sessionToken').primaryKey(),
+  userId: text('userId')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  expires: timestamp('expires', { mode: 'date' }).notNull(),
+});
+
+export const verificationTokens = pgTable(
+  'verificationToken',
+  {
+    identifier: text('identifier').notNull(),
+    token: text('token').notNull(),
+    expires: timestamp('expires', { mode: 'date' }).notNull(),
+  },
+  (verificationToken) => ({
+    compositePk: primaryKey({
+      columns: [verificationToken.identifier, verificationToken.token],
+    }),
+  }),
+);
+
+export const authenticators = pgTable(
+  'authenticator',
+  {
+    credentialID: text('credentialID').notNull().unique(),
+    userId: text('userId')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    providerAccountId: text('providerAccountId').notNull(),
+    credentialPublicKey: text('credentialPublicKey').notNull(),
+    counter: integer('counter').notNull(),
+    credentialDeviceType: text('credentialDeviceType').notNull(),
+    credentialBackedUp: boolean('credentialBackedUp').notNull(),
+    transports: text('transports'),
+  },
+  (authenticator) => ({
+    compositePK: primaryKey({
+      columns: [authenticator.userId, authenticator.credentialID],
+    }),
+  }),
+);
 
 // export const usersRelations = relations(users, ({ many }) => ({
 //   orders: many(orders),
@@ -88,8 +156,7 @@ export const products = pgTable('products', {
   categoryId: varchar({ length: 255 })
     .references(() => categories.id)
     .notNull(),
-  imageUrl: varchar({ length: 255 })
-    .notNull(),
+  imageUrl: varchar({ length: 255 }).notNull(),
   active: boolean().default(true),
 });
 
@@ -108,7 +175,8 @@ export const productInsertSchema = createInsertSchema(products, {
   stock: (schema) => schema.stock,
   categoryId: (schema) => schema.categoryId.uuid('ID must be UUID'),
 });
-export type InsertProduct = (typeof products.$inferInsert)
+export type InsertProduct = typeof products.$inferInsert;
+const insertProductSchema = createInsertSchema(products);
 
 // export const productsRelations = relations(products, ({ many, one }) => ({
 //   ordersDetails: many(orders),
@@ -153,8 +221,6 @@ export const categoriesRelations = relations(categories, ({ many }) => ({
 export const insertCategorySchema = createInsertSchema(categories, {
   name: (schema) => schema.name.min(3).max(50),
 });
-
-export type InsertCategory = typeof categories.$inferInsert;
 
 // export const categoriesRelations = relations(categories, ({ one, many }) => ({
 //   father: one(categories, {
