@@ -6,9 +6,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors({
-    origin: 'http://localhost:3000', // "https://gamevault-frontend.vercel.app"
-  });
+  app.enableCors();
 
   // app.useGlobalPipes(
   //   new ValidationPipe({
