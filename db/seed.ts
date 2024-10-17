@@ -1,14 +1,14 @@
-import { createInsertSchema } from 'drizzle-zod';
-import { db } from './db';
-import { products, categories, users, InsertProduct } from './schema';
 import { faker } from '@faker-js/faker';
+
+import { db } from '../src/config/db';
+import { products, categories, users, type CreateUserDto } from './schema';
 
 const main = async () => {
   const categoriesData: (typeof categories.$inferInsert)[] = [];
 
   const productsData: (typeof products.$inferInsert)[] = [];
 
-  const usersData: (typeof users.$inferInsert)[] = [];
+  const usersData: CreateUserDto[] = [];
 
   for (let i = 0; i < 10; i++) {
     categoriesData.push({
@@ -29,6 +29,7 @@ const main = async () => {
       type: faker.helpers.arrayElement(['DIGITAL', 'PHISICAL']),
       stock: faker.number.int({ min: 1, max: 100 }),
       categoryId: faker.helpers.arrayElement(resultCategories).id,
+      imageUrl: faker.image.urlLoremFlickr({ width: 900, height: 900 }),
     });
   }
 
