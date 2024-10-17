@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
+import { boolean } from 'drizzle-orm/pg-core';
 import {
   integer,
   pgEnum,
@@ -36,6 +37,7 @@ export const users = pgTable('user', {
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
   image: varchar('image', { length: 255 }).notNull(),
+  active: boolean().default(true),
 });
 
 // export const usersRelations = relations(users, ({ many }) => ({
@@ -88,6 +90,7 @@ export const products = pgTable('products', {
     .notNull(),
   imageUrl: varchar({ length: 255 })
     .notNull(),
+  active: boolean().default(true),
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
@@ -105,7 +108,7 @@ export const productInsertSchema = createInsertSchema(products, {
   stock: (schema) => schema.stock,
   categoryId: (schema) => schema.categoryId.uuid('ID must be UUID'),
 });
-export type InsertProduct = typeof products.$inferInsert;
+export type InsertProduct = (typeof products.$inferInsert)
 
 // export const productsRelations = relations(products, ({ many, one }) => ({
 //   ordersDetails: many(orders),
