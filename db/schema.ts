@@ -10,7 +10,6 @@ import {
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-
 // export const roleEnum = pgEnum('role_enum', [
 //   'CUSTOMER',
 //   'ADMIN',
@@ -87,6 +86,8 @@ export const products = pgTable('products', {
   categoryId: varchar({ length: 255 })
     .references(() => categories.id)
     .notNull(),
+  imageUrl: varchar({ length: 255 })
+    .notNull(),
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
@@ -102,7 +103,7 @@ export const productInsertSchema = createInsertSchema(products, {
   description: (schema) => schema.description.max(255),
   type: (schema) => schema.type,
   stock: (schema) => schema.stock,
-  categoryId: (schema) => schema.categoryId.uuid("ID must be UUID"),
+  categoryId: (schema) => schema.categoryId.uuid('ID must be UUID'),
 });
 export type InsertProduct = typeof products.$inferInsert;
 

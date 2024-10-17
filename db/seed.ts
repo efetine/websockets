@@ -1,12 +1,11 @@
-import { createInsertSchema } from 'drizzle-zod';
 import { db } from './db';
-import { products, categories, users, InsertProduct } from './schema';
+import { products, categories, users } from './schema';
 import { faker } from '@faker-js/faker';
 
 const main = async () => {
   const categoriesData: (typeof categories.$inferInsert)[] = [];
 
-  const productsData: (typeof products.$inferInsert)[] = [];
+  const productsData: (typeof products.$inferInsert)[] = []
 
   const usersData: (typeof users.$inferInsert)[] = [];
 
@@ -29,6 +28,7 @@ const main = async () => {
       type: faker.helpers.arrayElement(['DIGITAL', 'PHISICAL']),
       stock: faker.number.int({ min: 1, max: 100 }),
       categoryId: faker.helpers.arrayElement(resultCategories).id,
+      imageUrl: faker.image.urlLoremFlickr({ width: 900, height: 900 }),
     });
   }
 

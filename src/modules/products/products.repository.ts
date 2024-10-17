@@ -25,6 +25,8 @@ export class ProductsRepository {
       columns: { categoryId: false, description: false, stock: false },
       limit:limit,
       offset: (page - 1) * limit
+    }).catch((err) => {
+      throw new BadRequestException('There are no more products available');
     });
     if (products.length === 0)
       throw new NotFoundException('Products Not Found');
@@ -40,6 +42,7 @@ export class ProductsRepository {
   async findOneById(id: string): Promise<InsertProduct> {
     const product = await db.query.products.findFirst({
       where: (fields) => eq(fields.id, id),
+      with: { category: true },
     });
     if (!product) throw new NotFoundException('Product not Found');
     return product;
