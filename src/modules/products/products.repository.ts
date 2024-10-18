@@ -114,7 +114,7 @@ export class ProductsRepository {
       await db
         .update(products)
         .set({ active: false })
-        .where(and((eq(products.active, true), eq(products.id, id))))
+        .where(and(eq(products.active, true), eq(products.id, id)))
     ).rowCount;
     if (rowCount == 0) throw new NotFoundException('Product not Found');
     return { message: 'Product deleted Successfuly' };
