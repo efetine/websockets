@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
-import * as schema from './schema';
+import * as schema from './schemas/schema';
 import { POSTGRES_URL } from '../src/config/enviroments.config';
 
 /**
@@ -12,7 +12,7 @@ const globalForDb = globalThis as unknown as {
   conn: postgres.Sql | undefined;
 };
 
-if(!POSTGRES_URL) throw new Error('POSTGRES_URL is not defined');
+if (!POSTGRES_URL) throw new Error('POSTGRES_URL is not defined');
 
 const conn = globalForDb.conn ?? postgres(POSTGRES_URL);
 if (process.env.NODE_ENV !== 'production') globalForDb.conn = conn;

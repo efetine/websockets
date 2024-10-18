@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CategoriesRepository } from './categories.repository';
-import { InsertCategory } from '../../../db/schema';
+import { InsertCategory } from '../../../db/schemas/schema';
 
 @Injectable()
 export class CategoriesService {

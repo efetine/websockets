@@ -1,5 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { CreateUserDto, users } from '../../../db/schema';
+import { CreateUserDto, users } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 import { eq, and } from 'drizzle-orm';
 

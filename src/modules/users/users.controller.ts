@@ -18,7 +18,7 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { LimitPipe } from '../products/pipes/limitPage.pipe';
-import { CreateUserDto } from '../../../db/schema';
+import { CreateUserDto } from '../../../db/schemas/schema';
 
 @Controller('users')
 @ApiTags('Users')
