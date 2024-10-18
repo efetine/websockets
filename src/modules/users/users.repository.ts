@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { CreateUserDto, users } from '../../../db/schema';
 import { db } from '../../config/db';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 export class UsersRepository {
   constructor() {}
@@ -52,10 +52,16 @@ export class UsersRepository {
       });
     if (updateUser.length == 0) throw new NotFoundException('User Not Found');
     return updateUser;
-    }
-    
-    
-  removeUserById(id: string) {
-    throw new Error('Method not implemented.');
+  }
+
+  async removeUserById(id: string): Promise<{ message: string }> {
+    const rowCount = (
+      await db
+        .update(users)
+        .set({ active: false })
+        .where(and(eq(users.id, id), eq(users.active, true)))
+    ).rowCount;
+    if (rowCount == 0) throw new NotFoundException('User Not Found');
+    return { message: 'User deleted Successfuly' };
   }
 }
