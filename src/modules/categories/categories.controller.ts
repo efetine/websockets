@@ -6,35 +6,48 @@ import {
   Patch,
   Param,
   Delete,
+  BadRequestException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
+import { InsertCategory, insertCategorySchema } from '../../../db/schema';
 
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  findAll() {
-    return this.categoriesService.findAll();
+  async findAll(): Promise<InsertCategory[]> {
+    return await this.categoriesService.findAll();
   }
 
   @Get(':uuid')
-  findOne(@Param('uuid') id: string) {
-    return this.categoriesService.findOne(id);
+  async findOne(
+    @Param('uuid', ParseUUIDPipe) id: string,
+  ): Promise<InsertCategory> {
+    return await this.categoriesService.findOne(id);
   }
 
   @Post()
-  create(@Body() createCategoryDto: any) {
-    return this.categoriesService.create(createCategoryDto);
+  async create(@Body() body: InsertCategory): Promise<InsertCategory[]> {
+    const validation = insertCategorySchema.safeParse(body);
+    if (!validation.success)
+      throw new BadRequestException(validation.error.issues);
+    return await this.categoriesService.create(body);
   }
 
   @Patch(':uuid')
-  update(@Param('uuid') id: string, @Body() updateCategoryDto: any) {
-    return this.categoriesService.update(id, updateCategoryDto);
+  async update(
+    @Param('uuid', ParseUUIDPipe) id: string,
+    @Body() body: Partial<InsertCategory>,
+  ): Promise<InsertCategory[]> {
+    return await this.categoriesService.update(id, body);
   }
 
   @Delete(':uuid')
-  remove(@Param('uuid') id: string) {
-    return this.categoriesService.remove(id);
+  async remove(
+    @Param('uuid', ParseUUIDPipe) id: string,
+  ): Promise<{ message: string }> {
+    return await this.categoriesService.remove(id);
   }
 }
