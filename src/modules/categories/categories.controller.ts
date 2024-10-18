@@ -324,6 +324,7 @@ export class CategoriesController {
     },
   })
   @ApiOperation({ summary: 'Update Category' })
+  @Patch(':uuid')
   async update(
     @Param('uuid', ParseUUIDPipe) id: string,
     @Body() body: Partial<InsertCategory>,

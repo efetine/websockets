@@ -27,7 +27,7 @@ export class CategoriesRepository {
     });
 
     if (!category)
-      throw new NotFoundException("Category not Found");
+      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
 
     return category;
   }
@@ -54,7 +54,7 @@ export class CategoriesRepository {
       .returning({ id: categories.id, name: categories.name });
 
     if (updatedCategory.length == 0)
-      throw new NotFoundException("Category not Found");
+      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
 
     return updatedCategory;
   }
