@@ -6,6 +6,7 @@ import {
 import { db } from '../../config/db';
 import { InsertProduct, products } from '../../../db/schema';
 import { eq } from 'drizzle-orm';
+import { arrayOutputType } from 'zod';
 
 @Injectable()
 export class ProductsRepository {
@@ -17,7 +18,7 @@ export class ProductsRepository {
   }: {
     page: number;
     limit: number;
-  }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[]> {
+  }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[] | []> {
     const products = await db.query.products
       .findMany({
         with: { category: { columns: { name: true } } },
@@ -31,7 +32,7 @@ export class ProductsRepository {
         throw new BadRequestException('There are no more products available');
       });
     if (products.length === 0)
-      throw new NotFoundException('Products Not Found');
+      return [];
     return products;
   }
 
