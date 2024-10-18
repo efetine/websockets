@@ -1,10 +1,7 @@
 import {
   BadRequestException,
   Injectable,
-<<<<<<< HEAD
   InternalServerErrorException,
-=======
->>>>>>> fcb5b68 (fix(src/modules/categories) 'add all's changes of categories branch')
   NotFoundException,
 } from '@nestjs/common';
 import { categories, InsertCategory } from '../../../db/schema';
@@ -13,7 +10,6 @@ import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class CategoriesRepository {
-<<<<<<< HEAD
 
   async findAll(): Promise<InsertCategory[]> {
     try {
@@ -23,10 +19,6 @@ export class CategoriesRepository {
     } catch {
       throw new InternalServerErrorException("Error fetching Categories")
     }
-=======
-  async findAll(): Promise<InsertCategory[]> {
-    return await db.query.categories.findMany({ with: { products: true } });
->>>>>>> fcb5b68 (fix(src/modules/categories) 'add all's changes of categories branch')
   }
 
   async findOne(id: string): Promise<InsertCategory> {
@@ -46,11 +38,7 @@ export class CategoriesRepository {
       .values(newCategoryData)
       .returning();
 
-<<<<<<< HEAD
     if (!newCategory) throw new BadRequestException("Error Creating Category");
-=======
-    if (!newCategory) throw new BadRequestException(`Error creating category.`);
->>>>>>> fcb5b68 (fix(src/modules/categories) 'add all's changes of categories branch')
 
     return newCategory;
   }
