@@ -33,6 +33,7 @@ export const users = pgTable('user', {
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   password: text('password'),
   image: text('image').default('default_profile_picture.png').notNull(),
+  active: boolean().default(true).notNull(),
 });
 
 const insertUserSchema = createInsertSchema(users);
