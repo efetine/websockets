@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { categories, InsertCategory } from '../../../db/schema';
@@ -9,8 +10,15 @@ import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class CategoriesRepository {
+
   async findAll(): Promise<InsertCategory[]> {
-    return await db.query.categories.findMany({ with: { products: true } });
+    try {
+      const categories = await db.query.categories.findMany({ with: { products: true } });
+      if (categories.length == 0) throw new NotFoundException("Categories not Found")
+      return categories;
+    } catch {
+      throw new InternalServerErrorException("Error fetching Categories")
+    }
   }
 
   async findOne(id: string): Promise<InsertCategory> {
@@ -19,7 +27,7 @@ export class CategoriesRepository {
     });
 
     if (!category)
-      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
+      throw new NotFoundException("Category not Found");
 
     return category;
   }
@@ -30,7 +38,7 @@ export class CategoriesRepository {
       .values(newCategoryData)
       .returning();
 
-    if (!newCategory) throw new BadRequestException(`Error creating category.`);
+    if (!newCategory) throw new BadRequestException("Error Creating Category");
 
     return newCategory;
   }
@@ -46,16 +54,20 @@ export class CategoriesRepository {
       .returning({ id: categories.id, name: categories.name });
 
     if (updatedCategory.length == 0)
-      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
+      throw new NotFoundException("Category not Found");
 
     return updatedCategory;
   }
 
   async remove(id: string): Promise<{ message: string }> {
-    const rowCount = (await db.delete(categories).where(eq(categories.id, id)))
-      .rowCount;
-    if (rowCount == 0)
-      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
-    return { message: 'Category deleted Successfuly.' };
+    try {
+      const rowCount = (await db.delete(categories).where(eq(categories.id, id)))
+        .rowCount;
+      if (rowCount == 0)
+        throw new NotFoundException('Category not Found');
+      return { message: 'Category deleted Successfuly.' };
+    } catch {
+      throw new BadRequestException("Category is already exists in products relations, cannot be deleted")
+    }
   }
 }
