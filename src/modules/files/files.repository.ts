@@ -21,7 +21,14 @@ export class FilesRepository {
     });
   }
 
-  async removeSingleImage() {}
+  async removeSingleImage(publicId: string): Promise<Object> {
+    try {
+      await v2.uploader.destroy(publicId);
+      return { message: 'Image removed successfully.' };
+    } catch (error) {
+      throw new BadRequestException(`Asset with ${publicId} ID didn't exist.`);
+    }
+  }
 
   async removeMultipleImages() {}
 }

@@ -13,4 +13,8 @@ export class FilesService {
       secure_url: imageResult.secure_url,
     };
   }
+
+  async removeSingleImage(publicId: string): Promise<Object> {
+    return await this.filesRepository.removeSingleImage(publicId);
+  }
 }
