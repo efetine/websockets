@@ -1,8 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Param,
+  Delete,
+  ParseIntPipe,
+  Query,
+  ParseUUIDPipe,
+  Put,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { LimitPipe } from '../products/pipes/limitPage.pipe';
+import { CreateUserDto } from '../../../db/schema';
 
 @Controller('users')
 @ApiTags('Users')
@@ -10,22 +20,25 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page: number,
+    @Query('limit', LimitPipe) limit: number,
+  ) {
+    return await this.usersService.findAll({ page, limit });
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.findOneBy(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Put(':id')
+  async update(@Param('id', ParseUUIDPipe) id: string, @Body() body: Partial<CreateUserDto>) {
+    return await this.usersService.updateUser(id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id', ParseUUIDPipe) id: string) {
+    return await this.usersService.removeUser(id);
   }
 }
