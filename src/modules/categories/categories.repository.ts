@@ -10,6 +10,7 @@ import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class CategoriesRepository {
+
   async findAll(): Promise<InsertCategory[]> {
     try {
       const categories = await db.query.categories.findMany({
@@ -29,7 +30,7 @@ export class CategoriesRepository {
     });
 
     if (!category)
-      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
+      throw new NotFoundException("Category not Found");
 
     return category;
   }
@@ -56,7 +57,7 @@ export class CategoriesRepository {
       .returning({ id: categories.id, name: categories.name });
 
     if (updatedCategory.length == 0)
-      throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
+      throw new NotFoundException("Category not Found");
 
     return updatedCategory;
   }
