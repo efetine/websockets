@@ -1,26 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { CreateFileDto } from './dto/create-file.dto';
-import { UpdateFileDto } from './dto/update-file.dto';
+import { FilesRepository } from './files.repository';
 
 @Injectable()
 export class FilesService {
-  create(createFileDto: CreateFileDto) {
-    return 'This action adds a new file';
-  }
+  constructor(private filesRepository: FilesRepository) {}
 
-  findAll() {
-    return `This action returns all files`;
-  }
+  async uploadImage(id: string, file: Express.Multer.File) {
+    const imageResult = await this.filesRepository.uploadImage(file);
 
-  findOne(id: number) {
-    return `This action returns a #${id} file`;
-  }
-
-  update(id: number, updateFileDto: UpdateFileDto) {
-    return `This action updates a #${id} file`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} file`;
+    return {
+      public_id: imageResult.public_id,
+      secure_url: imageResult.secure_url,
+    };
   }
 }
