@@ -22,7 +22,7 @@ export class ProductsRepository {
     const products = await db.query.products
       .findMany({
         with: { category: { columns: { name: true } } },
-        where: (products: any, { gt, eq, and }: any) =>
+        where: (products, { gt, eq, and }: any) =>
           and(gt(products.stock, 1), eq(products.active, true)),
         columns: { categoryId: false, description: false, stock: false },
         limit: limit,

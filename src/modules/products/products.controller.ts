@@ -19,8 +19,7 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 @Controller('products')
 @ApiTags('Products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) { }
-  
+  constructor(private readonly productsService: ProductsService) {}
 
   @Post('createproduct')
   @ApiOperation({ summary: 'Create Product' })
@@ -38,6 +37,7 @@ export class ProductsController {
     @Query('page', ParseIntPipe) page: number,
     @Query('limit', LimitPipe) limit: number,
   ) {
+    if (page < 1) [];
     return await this.productsService.findAll({ page, limit });
   }
 
