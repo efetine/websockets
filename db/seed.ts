@@ -1,7 +1,12 @@
 import { faker } from '@faker-js/faker';
 
 import { db } from '../src/config/db';
-import { products, categories, users, type CreateUserDto } from './schema';
+import {
+  products,
+  categories,
+  users,
+  type CreateUserDto,
+} from './schemas/schema';
 
 const main = async () => {
   const categoriesData: (typeof categories.$inferInsert)[] = [];

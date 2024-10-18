@@ -12,7 +12,7 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
-import { InsertProduct, productInsertSchema } from '../../../db/schema';
+import { InsertProduct, productInsertSchema } from '../../../db/schemas/schema';
 import { LimitPipe } from './pipes/limitPage.pipe';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 

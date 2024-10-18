@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { users } from '../../../db/schema';
+import { users } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 
 @Injectable()

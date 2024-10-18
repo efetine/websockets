@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { db } from '../../config/db';
-import { InsertProduct, products } from '../../../db/schema';
+import { InsertProduct, products } from '../../../db/schemas/schema';
 import { eq } from 'drizzle-orm';
 import { arrayOutputType } from 'zod';
 
@@ -18,7 +18,9 @@ export class ProductsRepository {
   }: {
     page: number;
     limit: number;
-  }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[] | []> {
+  }): Promise<
+    Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[] | []
+  > {
     const products = await db.query.products
       .findMany({
         with: { category: { columns: { name: true } } },
@@ -31,8 +33,7 @@ export class ProductsRepository {
       .catch((err) => {
         throw new BadRequestException('There are no more products available');
       });
-    if (products.length === 0)
-      return [];
+    if (products.length === 0) return [];
     return products;
   }
 

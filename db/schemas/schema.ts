@@ -267,3 +267,8 @@ export type InsertCategory = z.infer<typeof insertCategorySchema>;
 // export const imagesRelations = relations(images, ({one}) => ({
 //   product: one(products,{fields:[images.productId], references:[products.id]})
 // }))
+
+export * from './auth.schema'
+export * from './products.schema'
+export * from './categories.schema'
+export * from './users.schema'

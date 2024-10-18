@@ -4,20 +4,22 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { categories, InsertCategory } from '../../../db/schema';
+import { categories, InsertCategory } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class CategoriesRepository {
-
   async findAll(): Promise<InsertCategory[]> {
     try {
-      const categories = await db.query.categories.findMany({ with: { products: true } });
-      if (categories.length == 0) throw new NotFoundException("Categories not Found")
+      const categories = await db.query.categories.findMany({
+        with: { products: true },
+      });
+      if (categories.length == 0)
+        throw new NotFoundException('Categories not Found');
       return categories;
     } catch {
-      throw new InternalServerErrorException("Error fetching Categories")
+      throw new InternalServerErrorException('Error fetching Categories');
     }
   }
 
@@ -38,7 +40,7 @@ export class CategoriesRepository {
       .values(newCategoryData)
       .returning();
 
-    if (!newCategory) throw new BadRequestException("Error Creating Category");
+    if (!newCategory) throw new BadRequestException('Error Creating Category');
 
     return newCategory;
   }
@@ -61,13 +63,15 @@ export class CategoriesRepository {
 
   async remove(id: string): Promise<{ message: string }> {
     try {
-      const rowCount = (await db.delete(categories).where(eq(categories.id, id)))
-        .rowCount;
-      if (rowCount == 0)
-        throw new NotFoundException('Category not Found');
+      const rowCount = (
+        await db.delete(categories).where(eq(categories.id, id))
+      ).rowCount;
+      if (rowCount == 0) throw new NotFoundException('Category not Found');
       return { message: 'Category deleted Successfuly.' };
     } catch {
-      throw new BadRequestException("Category is already exists in products relations, cannot be deleted")
+      throw new BadRequestException(
+        'Category is already exists in products relations, cannot be deleted',
+      );
     }
   }
 }
