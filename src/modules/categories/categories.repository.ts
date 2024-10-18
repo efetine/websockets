@@ -40,8 +40,8 @@ export class CategoriesRepository {
       .insert(categories)
       .values(newCategoryData)
       .returning();
+    if (!newCategory) throw new BadRequestException("Error Creating Category");
 
-    if (!newCategory) throw new BadRequestException('Error Creating Category');
 
     return newCategory;
   }
