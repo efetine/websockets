@@ -35,6 +35,39 @@ export class ProductsRepository {
     return products;
   }
 
+  async findProductsByCategory({
+    category,
+    page,
+    limit,
+  }: {
+    category: string;
+    page: number;
+    limit: number;
+  }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[]> {
+    const products = await db.query.products
+      .findMany({
+        with: { category: { columns: { name: true } } },
+        where: (products, { eq, gt, and }: any) =>
+          and(
+            gt(products.stock, 1),
+            eq(products.active, true),
+            eq(products.categoryId, category),
+          ),
+        columns: { categoryId: false, description: false, stock: false },
+        limit: limit,
+        offset: (page - 1) * limit,
+      })
+      .catch((err) => {
+        throw new BadRequestException(
+          'There are no products available for this category',
+        );
+      });
+    if (products.length === 0) {
+      throw new NotFoundException('Products Not Found for this category');
+    }
+    return products;
+  }
+
   async createProduct(productData: InsertProduct): Promise<InsertProduct[]> {
     const product = await db.insert(products).values(productData).returning();
     if (!product) throw new BadRequestException('Error creando el producto');
@@ -44,7 +77,11 @@ export class ProductsRepository {
   async findOneById(id: string): Promise<InsertProduct> {
     const product = await db.query.products.findFirst({
       where: (products, { gt, eq, and }: any) =>
-        and(gt(products.stock, 1), eq(products.active, true), eq(products.id, id)),
+        and(
+          gt(products.stock, 1),
+          eq(products.active, true),
+          eq(products.id, id),
+        ),
       with: { category: true },
     });
     if (!product) throw new NotFoundException('Product not Found');

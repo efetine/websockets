@@ -10,8 +10,8 @@ export class ProductsService {
     return await this.productsRepository.createProduct(body);
   }
 
-  async findAll({page, limit}:{page:number, limit:number}) {
-    return await this.productsRepository.findAllProducts({page, limit})
+  async findAll({ page, limit }: { page: number; limit: number }) {
+    return await this.productsRepository.findAllProducts({ page, limit });
   }
 
   async findOne(id: string) {
@@ -24,5 +24,21 @@ export class ProductsService {
 
   async remove(id: string) {
     return await this.productsRepository.removeProduct(id);
+  }
+
+  async findByCategory({
+    category,
+    page,
+    limit,
+  }: {
+    category: string;
+    page: number;
+    limit: number;
+  }) {
+    return await this.productsRepository.findProductsByCategory({
+      category,
+      page,
+      limit,
+    });
   }
 }
