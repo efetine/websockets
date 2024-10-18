@@ -5,8 +5,7 @@ import {
 } from '@nestjs/common';
 import { db } from '../../config/db';
 import { InsertProduct, products } from '../../../db/schema';
-import { eq } from 'drizzle-orm';
-import { arrayOutputType } from 'zod';
+import { eq, and, gt } from 'drizzle-orm';
 
 @Injectable()
 export class ProductsRepository {
@@ -18,7 +17,9 @@ export class ProductsRepository {
   }: {
     page: number;
     limit: number;
-  }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[] | []> {
+  }): Promise<
+    Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[] | []
+  > {
     const products = await db.query.products
       .findMany({
         with: { category: { columns: { name: true } } },
@@ -31,8 +32,7 @@ export class ProductsRepository {
       .catch((err) => {
         throw new BadRequestException('There are no more products available');
       });
-    if (products.length === 0)
-      return [];
+    if (products.length === 0) return [];
     return products;
   }
 
@@ -45,15 +45,14 @@ export class ProductsRepository {
     page: number;
     limit: number;
   }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[]> {
-    const products = await db.query.products
+    const productsArr = await db.query.products
       .findMany({
         with: { category: { columns: { name: true } } },
-        where: (products, { eq, gt, and }: any) =>
-          and(
-            gt(products.stock, 1),
-            eq(products.active, true),
-            eq(products.categoryId, category),
-          ),
+        where: and(
+          gt(products.stock, 1),
+          eq(products.active, true),
+          eq(products.categoryId, category),
+        ),
         columns: { categoryId: false, description: false, stock: false },
         limit: limit,
         offset: (page - 1) * limit,
@@ -63,10 +62,10 @@ export class ProductsRepository {
           'There are no products available for this category',
         );
       });
-    if (products.length === 0) {
+    if (productsArr.length === 0) {
       throw new NotFoundException('Products Not Found for this category');
     }
-    return products;
+    return productsArr;
   }
 
   async createProduct(productData: InsertProduct): Promise<InsertProduct[]> {
@@ -77,12 +76,11 @@ export class ProductsRepository {
 
   async findOneById(id: string): Promise<InsertProduct> {
     const product = await db.query.products.findFirst({
-      where: (products, { gt, eq, and }: any) =>
-        and(
-          gt(products.stock, 1),
-          eq(products.active, true),
-          eq(products.id, id),
-        ),
+      where: and(
+        eq(products.id, id),
+        eq(products.active, true),
+        gt(products.stock, 1),
+      ),
       with: { category: true },
     });
     if (!product) throw new NotFoundException('Product not Found');
@@ -96,7 +94,7 @@ export class ProductsRepository {
     const updateProduct = await db
       .update(products)
       .set(productData)
-      .where(eq(products.id, id))
+      .where(and(eq(products.id, id), eq(products.active, true)))
       .returning({
         id: products.id,
         price: products.price,
@@ -116,7 +114,7 @@ export class ProductsRepository {
       await db
         .update(products)
         .set({ active: false })
-        .where(eq(products.id, id))
+        .where(and((eq(products.active, true), eq(products.id, id))))
     ).rowCount;
     if (rowCount == 0) throw new NotFoundException('Product not Found');
     return { message: 'Product deleted Successfuly' };
