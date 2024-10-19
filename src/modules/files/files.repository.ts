@@ -1,11 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { UploadApiResponse, v2 } from 'cloudinary';
+import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
+import {
+  CLOUDINARY_API_KEY,
+  CLOUDINARY_API_SECRET,
+  CLOUDINARY_CLOUD_NAME,
+} from '../../config/enviroments.config';
 const toStream = require('buffer-to-stream');
 @Injectable()
 export class FilesRepository {
+  constructor() {
+    cloudinary.config({
+      cloud_name: CLOUDINARY_CLOUD_NAME,
+      api_key: CLOUDINARY_API_KEY,
+      api_secret: CLOUDINARY_API_SECRET,
+    });
+  }
+
   async uploadImage(file: Express.Multer.File): Promise<UploadApiResponse> {
     return new Promise((resolve, reject) => {
-      const upload = v2.uploader.upload_stream(
+      const upload = cloudinary.uploader.upload_stream(
         { resource_type: 'auto' },
         (error, result) => {
           if (error) {
@@ -22,13 +35,13 @@ export class FilesRepository {
   }
 
   async removeSingleImage(publicId: string): Promise<Object> {
-    try {
-      await v2.uploader.destroy(publicId);
-      return { message: 'Image removed successfully.' };
-    } catch (error) {
-      throw new BadRequestException(`Asset with ${publicId} ID didn't exist.`);
-    }
+    return await cloudinary.uploader.destroy(publicId);
   }
 
-  async removeMultipleImages() {}
+  async removeMultipleImages(publicsIds: string[]): Promise<Object> {
+    if (publicsIds.length >= 100)
+      throw new BadRequestException(`Can't delete 100 or more assets.`);
+
+    return await cloudinary.api.delete_resources(publicsIds);
+  }
 }
