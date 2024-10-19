@@ -22,6 +22,7 @@ import { MailModule } from './modules/mail/mail.module';
     MailModule,
     AuthModule,
     MercadopagoModule,
+    MailModule
   ],
 })
 export class AppModule {}
