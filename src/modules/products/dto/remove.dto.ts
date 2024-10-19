@@ -1,12 +1,12 @@
 import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from 'class-validator';
 
-export class RemoveOneImage {
+export class RemoveOneImageDto {
   @IsNotEmpty()
   @IsString()
-  ID: string;
+  publicId: string;
 }
 
-export class RemoveManyImages {
+export class RemoveManyImagesDto {
   @IsNotEmpty()
   @IsArray()
   @IsString({ each: true })

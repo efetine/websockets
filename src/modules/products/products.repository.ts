@@ -121,5 +121,38 @@ export class ProductsRepository {
     return { message: 'Product deleted Successfuly' };
   }
 
-  async removeOneImage(id: string) {}
+  async updateProductImage(productId: string, file: Express.Multer.File) {
+    const resultFile = await this.filesService.uploadImage(file);
+
+    const resultProduct = await db
+      .update(products)
+      .set({ imageUrl: resultFile.secure_url })
+      .where(eq(products.id, productId))
+      .returning();
+
+    if (resultProduct.length === 0)
+      throw new NotFoundException(`User with ${productId} uuid not found.`);
+
+    return resultFile;
+  }
+
+  async removeProductImage(productId: string, publicId: string) {
+    await this.filesService.removeSingleImage(publicId);
+
+    const result = await db
+      .update(products)
+      .set({
+        imageUrl:
+          'https://res.cloudinary.com/dnfslkgiv/image/upload/v1726516516/muft4cnobocgkvbgj215.png',
+      })
+      .where(eq(products.id, productId))
+      .returning();
+
+    if (result.length === 0)
+      throw new NotFoundException(
+        `Product with ${productId} uuid didn't exist.`,
+      );
+
+    return { message: 'Product image modified successfuly.' };
+  }
 }

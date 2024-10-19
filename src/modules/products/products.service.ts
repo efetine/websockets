@@ -41,4 +41,15 @@ export class ProductsService {
       limit,
     });
   }
+
+  async updateProductImage(productId: string, file: Express.Multer.File) {
+    return await this.productsRepository.updateProductImage(productId, file);
+  }
+
+  async removeProductImage(productId: string, publicId: string) {
+    return await this.productsRepository.removeProductImage(
+      productId,
+      publicId,
+    );
+  }
 }

@@ -10,6 +10,8 @@ import {
   Put,
   Query,
   ParseIntPipe,
+  Patch,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { InsertProduct, productInsertSchema } from '../../../db/schemas/schema';
@@ -20,7 +22,10 @@ import {
   ApiInternalServerErrorResponse,
   ApiResponse,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { RemoveOneImageDto } from './dto/remove.dto';
 
 @Controller('products')
 @ApiTags('Products')
@@ -410,5 +415,39 @@ export class ProductsController {
   @ApiOperation({ summary: 'Delete Product by ID' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     return await this.productsService.remove(id);
+  }
+
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description:
+            'El archivo de imagen que se desea subir (jpg, jpeg, png, webp)',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('image'))
+  @Patch('uploadImage/:uuid')
+  async updateProductImage(
+    @Param('uuid', ParseUUIDPipe) productId: string,
+    file: Express.Multer.File,
+  ) {
+    return await this.productsService.updateProductImage(productId, file);
+  }
+
+  @Patch('removeImage/:uuid')
+  async removeProductImage(
+    @Param('uuid', ParseUUIDPipe) productId: string,
+    @Body() body: RemoveOneImageDto,
+  ) {
+    return await this.productsService.removeProductImage(
+      productId,
+      body.publicId,
+    );
   }
 }
