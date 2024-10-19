@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { db } from '../../config/db';
-import { InsertProduct, products } from '../../../db/schema';
+import { InsertProduct, products } from '../../../db/schemas/schema';
 import { eq, and, gt } from 'drizzle-orm';
 
 @Injectable()
