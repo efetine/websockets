@@ -6,7 +6,6 @@ import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { FilesModule } from './modules/files/files.module';
-import { MailModule } from './modules/mail/mail.module';
 import { MercadopagoModule } from './modules/mercadopago/mercadopago.module';
 import { MailModule } from './modules/mail/mail.module';
 
