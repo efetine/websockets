@@ -12,7 +12,6 @@ import { MercadopagoModule } from './modules/mercadopago/mercadopago.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    FilesModule,
     UsersModule,
     ProductsModule,
     OrdersModule,
