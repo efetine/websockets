@@ -5,7 +5,7 @@ import { FilesRepository } from './files.repository';
 export class FilesService {
   constructor(private filesRepository: FilesRepository) {}
 
-  async uploadImage(id: string, file: Express.Multer.File) {
+  async uploadImage(file: Express.Multer.File) {
     const imageResult = await this.filesRepository.uploadImage(file);
 
     return {
@@ -16,5 +16,9 @@ export class FilesService {
 
   async removeSingleImage(publicId: string): Promise<Object> {
     return await this.filesRepository.removeSingleImage(publicId);
+  }
+
+  async removeMultipleImages(publicsIds: string[]): Promise<Object> {
+    return await this.filesRepository.removeMultipleImages(publicsIds);
   }
 }
