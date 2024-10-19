@@ -83,6 +83,21 @@ export class UsersRepository {
     if (resultUser.length === 0)
       throw new NotFoundException(`User with ${id} uuid not found.`);
 
-    return resultUser;
+    return resultFile;
+  }
+
+  async removeProfileImage(userId: string, publicId: string) {
+    await this.filesService.removeSingleImage(publicId);
+
+    const result = await db
+      .update(users)
+      .set({ image: 'default_profile_picture.png' })
+      .where(eq(users.id, userId))
+      .returning();
+
+    if (result.length === 0)
+      throw new NotFoundException(`User with ${userId} didn't exist.`);
+
+    return { message: 'User profile image modified successfuly.' };
   }
 }

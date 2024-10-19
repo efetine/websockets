@@ -6,10 +6,11 @@ import {
 import { db } from '../../config/db';
 import { InsertProduct, products } from '../../../db/schemas/schema';
 import { eq, and, gt } from 'drizzle-orm';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class ProductsRepository {
-  constructor() {}
+  constructor(private readonly filesService: FilesService) {}
 
   async findAllProducts({
     page,
@@ -119,4 +120,6 @@ export class ProductsRepository {
     if (rowCount == 0) throw new NotFoundException('Product not Found');
     return { message: 'Product deleted Successfuly' };
   }
+
+  async removeOneImage(id: string) {}
 }

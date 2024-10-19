@@ -29,4 +29,8 @@ export class UsersService {
   async uploadProfileImage(id: string, file: Express.Multer.File) {
     return await this.usersRepository.uploadProfileImage(id, file);
   }
+
+  async removeProfileImage(userId: string, publicId: string) {
+    return await this.usersRepository.removeProfileImage(userId, publicId);
+  }
 }

@@ -27,6 +27,7 @@ import {
 import { LimitPipe } from '../products/pipes/limitPage.pipe';
 import { CreateUserDto } from '../../../db/schemas/schema';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RemoveUserProfileDto } from './dto/remove.dto';
 
 @Controller('users')
 @ApiTags('Users')
@@ -269,5 +270,13 @@ export class UsersController {
     @Param('uuid', ParseUUIDPipe) id: string,
   ) {
     return await this.usersService.uploadProfileImage(id, file);
+  }
+
+  @Patch('removeImage/:uuid')
+  async removeProfileImage(
+    @Param('uuid', ParseUUIDPipe) id: string,
+    @Body() body: RemoveUserProfileDto,
+  ) {
+    return await this.usersService.removeProfileImage(id, body.publicId);
   }
 }
