@@ -1,10 +1,16 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateUserDto, users } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 import { eq, and } from 'drizzle-orm';
+import { FilesService } from '../files/files.service';
 
+@Injectable()
 export class UsersRepository {
-  constructor() {}
+  constructor(private readonly filesService: FilesService) {}
 
   async findAllUsers({
     page,
@@ -63,5 +69,20 @@ export class UsersRepository {
     ).rowCount;
     if (rowCount == 0) throw new NotFoundException('User Not Found');
     return { message: 'User deleted Successfuly' };
+  }
+
+  async uploadProfileImage(id: string, file: Express.Multer.File) {
+    const resultFile = await this.filesService.uploadImage(file);
+
+    const resultUser = await db
+      .update(users)
+      .set({ image: resultFile.secure_url })
+      .where(eq(users.id, id))
+      .returning();
+
+    if (resultUser.length === 0)
+      throw new NotFoundException(`User with ${id} uuid not found.`);
+
+    return resultUser;
   }
 }

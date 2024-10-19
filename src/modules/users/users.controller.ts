@@ -8,6 +8,12 @@ import {
   Query,
   ParseUUIDPipe,
   Put,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  Patch,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import {
@@ -16,9 +22,11 @@ import {
   ApiResponse,
   ApiInternalServerErrorResponse,
   ApiBody,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { LimitPipe } from '../products/pipes/limitPage.pipe';
 import { CreateUserDto } from '../../../db/schemas/schema';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 @ApiTags('Users')
@@ -224,5 +232,42 @@ export class UsersController {
   @ApiOperation({ summary: 'Delete User By ID' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     return await this.usersService.removeUser(id);
+  }
+
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        image: {
+          type: 'string',
+          format: 'binary',
+          description:
+            'El archivo de imagen que se desea subir (jpg, jpeg, png, webp)',
+        },
+      },
+    },
+  })
+  @ApiOperation({ summary: 'Update user profile image' })
+  @Patch('uploadImage/:uuid')
+  @UseInterceptors(FileInterceptor('image'))
+  async uploadProfileImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 100000,
+            message: 'The image must be less than 1mb.',
+          }),
+          new FileTypeValidator({
+            fileType: /(jpg|jpeg|png|webp)$/,
+          }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+    @Param('uuid', ParseUUIDPipe) id: string,
+  ) {
+    return await this.usersService.uploadProfileImage(id, file);
   }
 }

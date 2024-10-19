@@ -10,12 +10,12 @@ import { ConfigModule } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    FilesModule,
     UsersModule,
     ProductsModule,
     OrdersModule,
     CategoriesModule,
     AuthModule,
-    FilesModule,
   ],
 })
 export class AppModule {}
