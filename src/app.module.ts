@@ -25,6 +25,8 @@ import { MercadopagoModule } from './modules/mercadopago/mercadopago.module';
     AuthModule,
     MercadopagoModule,
     AuthModule,
+    FilesModule,
+    MailModule,
   ],
 })
 export class AppModule {}
