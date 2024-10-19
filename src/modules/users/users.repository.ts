@@ -1,5 +1,5 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { CreateUserDto, users } from '../../../db/schema';
+import { CreateUserDto, users } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 import { eq, and } from 'drizzle-orm';
 
@@ -32,7 +32,7 @@ export class UsersRepository {
     const user = await db.query.users.findFirst({
       where: eq(users.id, id),
     });
-    if (!user) throw new NotFoundException('User not Found');
+    if (!user) throw new NotFoundException('User by ID not found');
     return user;
   }
 

@@ -11,7 +11,10 @@ import {
   Put,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
-import { InsertCategory, insertCategorySchema } from '../../../db/schema';
+import {
+  InsertCategory,
+  insertCategorySchema,
+} from '../../../db/schemas/schema';
 import {
   ApiBody,
   ApiInternalServerErrorResponse,

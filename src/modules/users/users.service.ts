@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
-import { CreateUserDto } from '../../../db/schema';
+import { CreateUserDto } from '../../../db/schemas/schema';
 
 @Injectable()
 export class UsersService {
@@ -23,6 +23,6 @@ export class UsersService {
   }
 
   async removeUser(id: string) {
-    return await this.usersRepository.removeUserById(id)
+    return await this.usersRepository.removeUserById(id);
   }
 }
