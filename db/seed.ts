@@ -50,7 +50,7 @@ const main = async () => {
 
   await db.insert(users).values(usersData);
 
-  await db.$client.end();
+  /* await db.$client.end(); */
 };
 
 main();

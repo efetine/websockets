@@ -5,7 +5,7 @@ import * as schema from '../../db/schemas/schema';
 
 const pool = new Pool({ connectionString: POSTGRES_URL });
 export const db = drizzle(pool, { schema }); */
-
+import * as schema from '../../db/schemas/schema';
 import { drizzle } from 'drizzle-orm/vercel-postgres';
-export const db = drizzle();
+export const db = drizzle({schema: schema});
 
