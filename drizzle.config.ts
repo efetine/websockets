@@ -1,4 +1,3 @@
-
 import { POSTGRES_URL } from "./src/config/enviroments.config";
 import { defineConfig } from "drizzle-kit";
 
