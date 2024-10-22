@@ -186,12 +186,20 @@ export class ProductsController {
   })
   @ApiOperation({ summary: 'Get All Paginated Products (Page/Limit)' })
   async findAll(
-    @Query('page', ParseIntPipe) page: number,
+    @Query('cursor') cursor: string,
     @Query('limit', LimitPipe) limit: number,
   ) {
-    if (page < 1) [];
-    return await this.productsService.findAll({ page, limit });
+    return await this.productsService.findAll({ cursor, limit });
   }
+
+  @Get('dashboardTable')
+  async findDashboard(
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('cursor') cursor: string,
+  ) {
+    return await this.productsService.findAllDashboardProducts({ limit, cursor });
+  }
+  
 
   @Get('category')
   @ApiResponse({
@@ -287,10 +295,10 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get All Products By Category' })
   async findByCategory(
     @Query('category') category: string,
-    @Query('page', ParseIntPipe) page: number,
+    @Query('cursor', ParseIntPipe) cursor: string,
     @Query('limit', LimitPipe) limit: number,
   ) {
-    return await this.productsService.findByCategory({ category, page, limit });
+    return await this.productsService.findByCategory({ category, cursor, limit });
   }
 
   @Get(':id')

@@ -4,8 +4,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { db } from '../../config/db';
-import { InsertProduct, ProductEntity, products } from '../../../db/schemas/schema';
-import { eq, and, gt, inArray } from 'drizzle-orm';
+import {
+  InsertProduct,
+  ProductEntity,
+  products,
+} from '../../../db/schemas/schema';
+import { eq, and, gte, inArray, gt } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
 
 @Injectable()
@@ -13,22 +17,31 @@ export class ProductsRepository {
   constructor(private readonly filesService: FilesService) {}
 
   async findAllProducts({
-    page,
+    cursor,
     limit,
   }: {
-    page: number;
+    cursor: string;
     limit: number;
   }): Promise<
-    Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[] | []
+    | Omit<
+        ProductEntity,
+        'description' | 'categoryId' | 'stock' | 'active' | 'type'
+      >[]
+    | []
   > {
     const products = await db.query.products
       .findMany({
         with: { category: { columns: { name: true } } },
-        where: (products, { gt, eq, and }: any) =>
-          and(gt(products.stock, 1), eq(products.active, true)),
-        columns: { categoryId: false, description: false, stock: false },
+        where: (products, { eq, and }: any) =>
+          and(gte(products.stock, 1), eq(products.active, true), gte(products.id, cursor)),
+        columns: {
+          categoryId: false,
+          description: false,
+          stock: false,
+          active: false,
+          type: false,
+        },
         limit: limit,
-        offset: (page - 1) * limit,
       })
       .catch((err) => {
         throw new BadRequestException('There are no more products available');
@@ -37,13 +50,37 @@ export class ProductsRepository {
     return products;
   }
 
+  async findAllDashboardProducts({
+    limit,
+    cursor,
+  }: {
+    limit: number;
+    cursor: string;
+  }) : Promise<Omit<ProductEntity, 'description' | 'categoryId' >[]> {
+    const data = db.query.products.findMany({
+      columns: {
+        imageUrl: true,
+        name: true,
+        price: true,
+        stock: true,
+        id: true,
+        active: true,
+        type: true,
+      },
+      where: gte(products.id, cursor),
+      limit: limit,
+      orderBy: products.id,
+    });
+    return data;
+  }
+
   async findProductsByCategory({
     category,
-    page,
+    cursor,
     limit,
   }: {
     category: string;
-    page: number;
+    cursor: string;
     limit: number;
   }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[]> {
     const productsArr = await db.query.products
@@ -53,10 +90,10 @@ export class ProductsRepository {
           gt(products.stock, 1),
           eq(products.active, true),
           eq(products.categoryId, category),
+          gte(products.id, cursor)
         ),
         columns: { categoryId: false, description: false, stock: false },
         limit: limit,
-        offset: (page - 1) * limit,
       })
       .catch((err) => {
         throw new BadRequestException(
@@ -88,7 +125,11 @@ export class ProductsRepository {
     return product;
   }
 
-  async findManyByIds(idArray: string[]): Promise<Omit<ProductEntity, 'description' | 'type' | 'imageUrl' |'active'>[]> {
+  async findManyByIds(
+    idArray: string[],
+  ): Promise<
+    Omit<ProductEntity, 'description' | 'type' | 'imageUrl' | 'active'>[]
+  > {
     const data = await db.query.products.findMany({
       where: inArray(products.id, idArray),
       columns: {

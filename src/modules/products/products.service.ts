@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
 import { InsertProduct, ProductEntity } from '../../../db/schemas/schema';
 
@@ -10,8 +10,40 @@ export class ProductsService {
     return await this.productsRepository.createProduct(body);
   }
 
-  async findAll({ page, limit }: { page: number; limit: number }) {
-    return await this.productsRepository.findAllProducts({ page, limit });
+  async findAll({ cursor, limit }: { cursor: string; limit: number }) {
+    limit++;
+    if (!cursor) cursor = '0';
+    if (!limit || limit > 20) limit = 20;
+    return await this.productsRepository.findAllProducts({ cursor, limit });
+  }
+
+  async findAllDashboardProducts({
+    limit,
+    cursor,
+  }: {
+    limit: number;
+    cursor: string;
+  }) {
+    limit++;
+    if (!cursor) cursor = '0';
+    if (!limit || limit > 20) limit = 20;
+
+    const data = await this.productsRepository
+      .findAllDashboardProducts({
+        limit,
+        cursor,
+      })
+      .catch((err) => {
+        throw new BadRequestException('There are no more products available');
+      });
+    if (data.length === 0) return { data: [], cursor: null };
+    cursor = data[data.length - 1]?.id;
+    data.pop();
+    const returnObject = {
+      data: data,
+      cursor,
+    };
+    return returnObject;
   }
 
   async findOne(id: string) {
@@ -20,7 +52,9 @@ export class ProductsService {
 
   async findManyByIds(
     ids: string[],
-  ): Promise<Omit<ProductEntity, 'description' | 'type' | 'imageUrl' | 'active'>[]> {
+  ): Promise<
+    Omit<ProductEntity, 'description' | 'type' | 'imageUrl' | 'active'>[]
+  > {
     return await this.productsRepository.findManyByIds(ids);
   }
 
@@ -34,18 +68,27 @@ export class ProductsService {
 
   async findByCategory({
     category,
-    page,
+    cursor,
     limit,
   }: {
     category: string;
-    page: number;
+    cursor: string | undefined;
     limit: number;
   }) {
-    return await this.productsRepository.findProductsByCategory({
+    limit++;
+    if (!cursor) cursor = '0';
+    if (!limit || limit > 20) limit = 20;
+    const data = await this.productsRepository.findProductsByCategory({
       category,
-      page,
+      cursor,
       limit,
     });
+    cursor = data[data.length - 1]?.id;
+    data.pop();
+    return {
+      data,
+      cursor: cursor,
+    };
   }
 
   async updateProductImage(productId: string, file: Express.Multer.File) {
