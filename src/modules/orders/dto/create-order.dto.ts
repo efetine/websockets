@@ -1,16 +1,23 @@
-import { IsInt, IsPositive, IsUUID } from "class-validator"
+import { IsInt, IsPositive, IsString, IsUUID } from "class-validator"
 
 class products {
-    @IsUUID()
-    id:string
+  @IsUUID()
+  productId: string;
 
-    @IsInt()
-    @IsPositive()
-    quantity:number
+  @IsInt()
+  @IsPositive()
+  quantity: number;
+
+  @IsInt()
+  @IsPositive()
+  price: number;
 }
 export class CreateOrderDto {
   @IsUUID()
   userId: string;
+
+  @IsString()
+  mpOrderID: string;
 
   products: products[];
 }
