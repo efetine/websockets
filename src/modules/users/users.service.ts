@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
-import { CreateUserDto } from '../../../db/schemas/schema';
+import { CreateUserDto, UserEntity } from '../../../db/schemas/schema';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +14,7 @@ export class UsersService {
     return await this.usersRepository.findAllUsers({ page, limit });
   }
 
-  async findOneBy(id: string) {
+  async findOneBy(id: string): Promise<UserEntity> {
     return await this.usersRepository.findOneById(id);
   }
 

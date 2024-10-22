@@ -48,3 +48,4 @@ export const productInsertSchema = createInsertSchema(products, {
 });
 export type InsertProduct = typeof products.$inferInsert;
 export const insertProductSchema = createInsertSchema(products);
+export type ProductEntity = typeof products.$inferSelect;

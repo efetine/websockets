@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto, users } from '../../../db/schemas/schema';
+import { CreateUserDto, UserEntity, users } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 import { eq, and } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
@@ -34,7 +34,7 @@ export class UsersRepository {
     return users;
   }
 
-  async findOneById(id: string): Promise<CreateUserDto> {
+  async findOneById(id: string): Promise<UserEntity> {
     const user = await db.query.users.findFirst({
       where: eq(users.id, id),
     });

@@ -8,5 +8,6 @@ import { FilesModule } from '../files/files.module';
   imports: [FilesModule],
   controllers: [ProductsController],
   providers: [ProductsService, ProductsRepository],
+  exports: [ProductsService, ProductsRepository]
 })
 export class ProductsModule {}

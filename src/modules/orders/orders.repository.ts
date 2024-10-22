@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from "@nestjs/common";
+import { BadGatewayException, BadRequestException, Injectable } from "@nestjs/common";
 import { CreateOrderDto } from "./dto/create-order.dto";
 import { db } from "../../config/db";
 import { orders, ordersDetails } from "../../../db/schemas/orders.schema";
@@ -6,17 +6,15 @@ import { orders, ordersDetails } from "../../../db/schemas/orders.schema";
 @Injectable()
 export class ordersRepository {
     async create(data: CreateOrderDto){
-        const order = await db.insert(orders).values({userId:data.userId, mpOrderId:data.mpOrderID}).execute({id:true}) as any
-
-        if(!order || !order.id){
-            throw new BadGatewayException("Error creating order")
-        }
-
+        const order = await db.insert(orders).values({userId:data.userId, mpOrderId:data.mpOrderID}).returning() as any
+        console.log(order)
+        if(!order[0] || !order[0].id) throw new BadRequestException("Error creating order")
         const ordersDetailsObj = data.products.map((product) => {
             return {
-                orderId: order.id,
+                orderId: order[0].id,
                 productId: product.productId,
-                quantity: product.quantity
+                quantity: product.quantity,
+                price: product.price
             }
         })
 
@@ -25,5 +23,7 @@ export class ordersRepository {
         if(!orderDetails){
             throw new BadGatewayException("Error creating order details")
         }
+
+        return order[0].id
     }
 }

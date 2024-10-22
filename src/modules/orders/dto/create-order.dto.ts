@@ -17,7 +17,7 @@ export class CreateOrderDto {
   userId: string;
 
   @IsString()
-  mpOrderID: string;
+  mpOrderID?: string;
 
   products: products[];
 }

@@ -7,16 +7,19 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { CategoriesModule } from './modules/categories/categories.module';
 import { FilesModule } from './modules/files/files.module';
 import { MailModule } from './modules/mail/mail.module';
+import { MercadopagoModule } from './modules/mercadopago/mercadopago.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    FilesModule,
     UsersModule,
     ProductsModule,
     OrdersModule,
     CategoriesModule,
     FilesModule,
+    MailModule,
+    AuthModule,
+    MercadopagoModule,
     MailModule,
     AuthModule,
   ],

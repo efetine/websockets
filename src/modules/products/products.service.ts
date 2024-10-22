@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProductsRepository } from './products.repository';
-import { InsertProduct } from '../../../db/schemas/schema';
+import { InsertProduct, ProductEntity } from '../../../db/schemas/schema';
 
 @Injectable()
 export class ProductsService {
@@ -16,6 +16,12 @@ export class ProductsService {
 
   async findOne(id: string) {
     return await this.productsRepository.findOneById(id);
+  }
+
+  async findManyByIds(
+    ids: string[],
+  ): Promise<Omit<ProductEntity, 'description' | 'type' | 'imageUrl' | 'active'>[]> {
+    return await this.productsRepository.findManyByIds(ids);
   }
 
   async update(id: string, productData: Partial<InsertProduct>) {
