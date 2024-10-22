@@ -14,7 +14,13 @@ export class ProductsService {
     limit++;
     if (!cursor) cursor = '0';
     if (!limit || limit > 20) limit = 20;
-    return await this.productsRepository.findAllProducts({ cursor, limit });
+    const data = await this.productsRepository.findAllProducts({ cursor, limit });
+    cursor = data[data.length - 1]?.id;
+    data.pop();
+    return {
+      data,
+      cursor,
+    };
   }
 
   async findAllDashboardProducts({
