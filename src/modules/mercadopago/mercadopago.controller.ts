@@ -21,6 +21,5 @@ export class MercadopagoController {
   @Post('webhook')
   async webhook(@Body() body: any) {
     await this.mercadopagoService.webhook(body);
-    return 'OK';
   }
 }

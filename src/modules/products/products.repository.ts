@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { db } from '../../config/db';
-import { InsertProduct, products } from '../../../db/schemas/schema';
-import { eq, and, gt } from 'drizzle-orm';
+import { InsertProduct, ProductEntity, products } from '../../../db/schemas/schema';
+import { eq, and, gt, inArray } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
 
 @Injectable()
@@ -88,6 +88,20 @@ export class ProductsRepository {
     return product;
   }
 
+  async findManyByIds(idArray: string[]): Promise<Omit<ProductEntity, 'description' | 'type' | 'imageUrl' |'active'>[]> {
+    const data = await db.query.products.findMany({
+      where: inArray(products.id, idArray),
+      columns: {
+        id: true,
+        name: true,
+        price: true,
+        stock: true,
+        categoryId: true,
+      },
+    });
+    if (!data) throw new NotFoundException('Product not Found');
+    return data;
+  }
   async updateProduct(
     id: string,
     productData: Partial<InsertProduct>,

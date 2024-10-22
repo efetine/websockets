@@ -9,7 +9,7 @@ import { orders } from './orders.schema';
 export const users = pgTable('user', {
   id: text('id')
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
+    .$defaultFn(() => crypto.randomUUID()).notNull(),
   name: text('name'),
   email: text('email').unique().notNull(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
@@ -22,5 +22,6 @@ export const userRelations = relations(users, ({ many }) => ({
   orders: many(orders),
 }));
 
-const insertUserSchema = createInsertSchema(users);
+export const insertUserSchema = createInsertSchema(users);
 export type CreateUserDto = z.infer<typeof insertUserSchema>;
+export type UserEntity = typeof users.$inferInsert;

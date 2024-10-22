@@ -10,7 +10,7 @@ class product {
 }
 export class CreateMercadopagoDto {
     @IsUUID()
-    client:string
+    user:string
 
     products:product[]
 }
