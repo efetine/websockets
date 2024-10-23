@@ -9,7 +9,7 @@ import { FilesModule } from './modules/files/files.module';
 import { MailModule } from './modules/mail/mail.module';
 import { MercadopagoModule } from './modules/mercadopago/mercadopago.module';
 import { WebsocketModule } from './modules/websockets/websockets.module';
-import { CartsModule } from "./modules/carts/carts.module"
+import { CartsModule } from './modules/carts/carts.module';
 
 @Module({
   imports: [
