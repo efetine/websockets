@@ -15,7 +15,7 @@ export class ProductsService {
     if (!cursor) cursor = '0';
     if (!limit || limit > 20) limit = 20;
     const data = await this.productsRepository.findAllProducts({ cursor, limit });
-    cursor = data[data.length - 1]?.id;
+    cursor = data[limit - 1]?.id;
     data.pop();
     return {
       data,
@@ -43,7 +43,7 @@ export class ProductsService {
         throw new BadRequestException('There are no more products available');
       });
     if (data.length === 0) return { data: [], cursor: null };
-    cursor = data[data.length - 1]?.id;
+    cursor = data[limit - 1]?.id;
     data.pop();
     const returnObject = {
       data: data,
@@ -89,7 +89,7 @@ export class ProductsService {
       cursor,
       limit,
     });
-    cursor = data[data.length - 1]?.id;
+    cursor = data[limit - 1]?.id;
     data.pop();
     return {
       data,
