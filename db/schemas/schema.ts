@@ -160,6 +160,8 @@ export const authenticators = pgTable(
 //   }),
 // }));
 
+export const productStatusEnum = pgEnum('active', ['active', 'inactive']);
+
 export const products = pgTable('products', {
   id: varchar('id', { length: 255 })
     .notNull()
@@ -173,8 +175,10 @@ export const products = pgTable('products', {
   categoryId: varchar({ length: 255 })
     .references(() => categories.id)
     .notNull(),
-  imageUrl: varchar({ length: 255 }).notNull(),
-  active: boolean().default(true).notNull(),
+  imageUrl: varchar({ length: 255 })
+    .default('default_product_image.png')
+    .notNull(),
+  active: productStatusEnum().default('active').notNull(),
 });
 
 export const productsRelations = relations(products, ({ one }) => ({
@@ -191,9 +195,13 @@ export const productInsertSchema = createInsertSchema(products, {
   type: (schema) => schema.type,
   stock: (schema) => schema.stock,
   categoryId: (schema) => schema.categoryId.uuid('ID must be UUID'),
+}).omit({
+  imageUrl: true,
 });
-export type InsertProduct = typeof products.$inferInsert;
-const insertProductSchema = createInsertSchema(products);
+const insertProductSchema = createInsertSchema(products).omit({
+  imageUrl: true,
+});
+export type InsertProduct = z.infer<typeof insertProductSchema>;
 
 // export const productsRelations = relations(products, ({ many, one }) => ({
 //   ordersDetails: many(orders),

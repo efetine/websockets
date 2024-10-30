@@ -11,7 +11,6 @@ import {
 } from '../../../db/schemas/schema';
 import { eq, and, gte, inArray, gt, sql, asc, ilike } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
-import { typeEnum } from './dto/type.enum';
 import type { GetProductsDto } from './dto/get-products.dto';
 
 @Injectable()
@@ -27,7 +26,7 @@ export class ProductsRepository {
     products: Omit<ProductEntity, 'categoryId'>[];
     nextCursor: string | null;
   }> {
-    const where = [gte(products.stock, 1), eq(products.active, true)];
+    const where = [gte(products.stock, 1), eq(products.active, 'active')];
 
     if (type !== undefined) {
       where.push(eq(products.type, type));
@@ -117,7 +116,7 @@ export class ProductsRepository {
         with: { category: { columns: { name: true } } },
         where: and(
           gt(products.stock, 1),
-          eq(products.active, true),
+          eq(products.active, 'active'),
           eq(products.categoryId, category),
           gte(products.id, cursor),
         ),
@@ -135,17 +134,19 @@ export class ProductsRepository {
     return productsArr;
   }
 
-  async createProduct(productData: InsertProduct): Promise<InsertProduct[]> {
-    const product = await db.insert(products).values(productData).returning();
+  async createProduct(productData: InsertProduct): Promise<InsertProduct> {
+    const product = await db.insert(products).values([productData]).returning();
+
     if (!product) throw new BadRequestException('Error creando el producto');
-    return product;
+
+    return product[0]!;
   }
 
   async findOneById(id: string): Promise<InsertProduct> {
     const product = await db.query.products.findFirst({
       where: and(
         eq(products.id, id),
-        eq(products.active, true),
+        eq(products.active, 'active'),
         gt(products.stock, 1),
       ),
       with: { category: true },
@@ -179,7 +180,7 @@ export class ProductsRepository {
     const updateProduct = await db
       .update(products)
       .set(productData)
-      .where(and(eq(products.id, id), eq(products.active, true)))
+      .where(and(eq(products.id, id), eq(products.active, 'active')))
       .returning({
         id: products.id,
         price: products.price,
@@ -208,8 +209,8 @@ export class ProductsRepository {
     const rowCount = (
       await db
         .update(products)
-        .set({ active: false })
-        .where(and(eq(products.active, true), eq(products.id, id)))
+        .set({ active: 'inactive' })
+        .where(and(eq(products.active, 'active'), eq(products.id, id)))
     ).rowCount;
     if (rowCount == 0) throw new NotFoundException('Product not Found');
     return { message: 'Product deleted Successfuly' };

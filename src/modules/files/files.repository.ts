@@ -1,11 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
+import { Readable } from 'stream';
+
 import {
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
   CLOUDINARY_CLOUD_NAME,
 } from '../../config/enviroments.config';
-const toStream = require('buffer-to-stream');
 @Injectable()
 export class FilesRepository {
   constructor() {
@@ -30,7 +31,10 @@ export class FilesRepository {
           }
         },
       );
-      toStream(file.buffer).pipe(upload);
+
+      // Esto convierte el archivo a un buffer a un stream para poder subirlo a Cloudinary
+      const stream = Readable.from(file.buffer);
+      stream.pipe(upload);
     });
   }
 

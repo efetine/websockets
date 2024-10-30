@@ -9,7 +9,12 @@ import {
   type Categories,
 } from './schemas/schema';
 
-import { IgamesObjects, gamesArray, categoriesArray, IgamesObjectsForDb } from './gamesArray.objects';
+import {
+  IgamesObjects,
+  gamesArray,
+  categoriesArray,
+  IgamesObjectsForDb,
+} from './gamesArray.objects';
 
 const main = async () => {
   const categoriesData: Set<string> = new Set();
@@ -42,6 +47,7 @@ const main = async () => {
       stock: faker.number.int({ min: 1, max: 100 }),
       categoryId: faker.helpers.arrayElement(resultCategories).id,
       imageUrl: faker.image.urlLoremFlickr({ width: 900, height: 900 }),
+      active: 'active',
     });
   }
 
@@ -61,8 +67,7 @@ const main = async () => {
   /* await db.$client.end(); */
 };
 
-const elMain = async() =>{
-
+const elMain = async () => {
   const resultCategories = await db
     .insert(categories)
     .values(categoriesArray)
@@ -83,6 +88,6 @@ const elMain = async() =>{
   }) as IgamesObjectsForDb[];
 
   await db.insert(products).values(gamesObjects);
-}
+};
 
 elMain();

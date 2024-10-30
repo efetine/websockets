@@ -1,9 +1,9 @@
 import { relations } from 'drizzle-orm';
-import { boolean } from 'drizzle-orm/pg-core';
 import { integer, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { categories } from './categories.schema';
 import { cartAndProducts } from './cart_products.schema';
+import { productStatusEnum } from './schema';
 
 export const productTypeEnum = pgEnum('type_product_enum', [
   'digital',
@@ -23,8 +23,10 @@ export const products = pgTable('products', {
   categoryId: varchar({ length: 255 })
     .references(() => categories.id)
     .notNull(),
-  imageUrl: varchar({ length: 255 }).notNull(),
-  active: boolean().default(true).notNull(),
+  imageUrl: varchar({ length: 255 })
+    .default('default_product_image.png')
+    .notNull(),
+  active: productStatusEnum().default('active').notNull(),
 });
 
 export const productsRelations = relations(products, ({ one, many }) => ({
@@ -43,6 +45,5 @@ export const productInsertSchema = createInsertSchema(products, {
   stock: (schema) => schema.stock,
   categoryId: (schema) => schema.categoryId.uuid('ID must be UUID'),
 });
-export type InsertProduct = typeof products.$inferInsert;
 export const insertProductSchema = createInsertSchema(products);
 export type ProductEntity = typeof products.$inferSelect;

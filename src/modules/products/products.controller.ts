@@ -12,6 +12,10 @@ import {
   ParseIntPipe,
   Patch,
   UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
 } from '@nestjs/common';
 
 import { ProductsService } from './products.service';
@@ -93,7 +97,7 @@ export class ProductsController {
     if (!validation.success) {
       throw new BadRequestException(validation.error.issues);
     }
-    return await this.productsService.create(validation.data as InsertProduct);
+    return await this.productsService.create(validation.data);
   }
 
   @Get()
@@ -465,9 +469,22 @@ export class ProductsController {
   @Patch('uploadImage/:uuid')
   async updateProductImage(
     @Param('uuid', ParseUUIDPipe) productId: string,
-    file: Express.Multer.File,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 200000, // 200000 bytes = 200kb
+          }),
+          new FileTypeValidator({
+            fileType: /(jpg|jpeg|png|webp)$/,
+          }),
+        ],
+      }),
+    )
+    image: Express.Multer.File,
   ) {
-    return await this.productsService.updateProductImage(productId, file);
+    console.log({ image, productId });
+    return await this.productsService.updateProductImage(productId, image);
   }
 
   @Patch('removeImage/:uuid')
