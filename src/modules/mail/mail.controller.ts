@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { MailService } from './mail.service';
 
-@Controller('mail-test')
+@Controller('mail')
 export class MailController {
   constructor(private readonly mailService: MailService) {}
 
@@ -163,6 +163,6 @@ export class MailController {
     }
   }
 
-  @Post('verified-email')
-  async verifiedEmail() {}
+  @Post('verified-email/:token')
+  async verifiedEmail(@Param('token') token: string) {}
 }

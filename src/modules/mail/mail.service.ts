@@ -1,5 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import crypto from 'crypto';
+import { db } from '../../config/db';
+import { users } from '../../../db/schemas/users.schema';
+import { eq } from 'drizzle-orm';
 
 @Injectable()
 export class MailService {
@@ -50,6 +58,17 @@ export class MailService {
   }
 
   async sendConfirmationMail(user: { email: string; name: string }) {
+    const tokenGenerated = crypto.randomBytes(30).toString('hex');
+
+    const result = await db
+      .update(users)
+      .set({ tokenConfirmation: tokenGenerated })
+      .where(eq(users.email, user.email))
+      .returning();
+
+    if (result.length === 0)
+      throw new NotFoundException(`User with email ${user.email} not found.`);
+
     const mailOptions = {
       from: "'GameVault' <pablobattola@gmail.com>",
       to: user.email,
@@ -65,14 +84,14 @@ export class MailService {
           To get started, please confirm your account by clicking the button below.
         </p>
         <div style="text-align: center; margin: 30px 0;">
-          <a href="" style="padding: 15px 25px; color: #fff; background-color: #28a745; text-decoration: none; border-radius: 5px; font-size: 16px;">
+          <a href="http://localhost:3001/mail/verified-email/${tokenGenerated}" style="padding: 15px 25px; color: #fff; background-color: #28a745; text-decoration: none; border-radius: 5px; font-size: 16px;">
             Confirm Account
           </a>
         </div>
         <p style="font-size: 14px; color: #777;">
           If the button doesn't work, copy and paste the following link into your browser:
           <br/>
-          <a href="" style="color: #007bff;"></a>
+          <a href="http://localhost:3001/mail/verified-email/${tokenGenerated}" style="color: #007bff;">http://localhost:3001/mail/verified-email/${tokenGenerated}</a>
         </p>
         <div style="text-align: center; margin-top: 20px;">
           <img src="https://wallpapercave.com/wp/wp4892943.jpg" alt="Thank you" style="width: 100%; max-width: 600px;"/>
@@ -289,5 +308,14 @@ export class MailService {
     }
   }
 
-  async verifiedEmail() {}
+  async verifiedEmail(token: string) {
+    const result = await db
+      .update(users)
+      .set({ emailVerified: new Date() })
+      .where(eq(users.tokenConfirmation, token))
+      .returning();
+
+    if (result.length === 0)
+      throw new BadRequestException(`Token invalid or deprecated.`);
+  }
 }

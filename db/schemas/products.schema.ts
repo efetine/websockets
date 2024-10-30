@@ -3,7 +3,8 @@ import { integer, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { categories } from './categories.schema';
 import { cartAndProducts } from './cart_products.schema';
-import { productStatusEnum } from './schema';
+
+export const productStatusEnum = pgEnum('active', ['active', 'inactive']);
 
 export const productTypeEnum = pgEnum('type_product_enum', [
   'digital',

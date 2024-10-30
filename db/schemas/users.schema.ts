@@ -9,13 +9,15 @@ import { orders } from './orders.schema';
 export const users = pgTable('user', {
   id: text('id')
     .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()).notNull(),
+    .$defaultFn(() => crypto.randomUUID())
+    .notNull(),
   name: text('name'),
   email: text('email').unique().notNull(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
   password: text('password'),
   image: text('image').default('default_profile_picture.png').notNull(),
   active: boolean().default(true).notNull(),
+  tokenConfirmation: text('tokenConfirmation'),
 });
 
 export const userRelations = relations(users, ({ many }) => ({
