@@ -10,10 +10,16 @@ import { MailModule } from './modules/mail/mail.module';
 import { MercadopagoModule } from './modules/mercadopago/mercadopago.module';
 import { WebsocketModule } from './modules/websockets/websockets.module';
 import { CartsModule } from './modules/carts/carts.module';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    JwtModule.register({
+      global: true,
+      signOptions: { expiresIn: '1h' },
+      secret: process.env.JWT_SECRET,
+    }),
     UsersModule,
     ProductsModule,
     OrdersModule,
@@ -23,7 +29,7 @@ import { CartsModule } from './modules/carts/carts.module';
     AuthModule,
     MercadopagoModule,
     CartsModule,
-    WebsocketModule
+    WebsocketModule,
   ],
 })
 export class AppModule {}

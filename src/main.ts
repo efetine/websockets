@@ -1,15 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 // import { BadRequestException, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { PORT } from './config/enviroments.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  app.use(cookieParser())
   app.enableCors();
-
   const swaggerConfig = new DocumentBuilder()
     .setTitle('GameVault - PF Co 53 - FT/FS')
     .setDescription(

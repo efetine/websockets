@@ -9,3 +9,4 @@ export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 export const PORT = process.env.PORT;
 export const MP_ACCESS_TOKEN = process.env.MP_ACCESS_TOKEN;
 export const HOST = process.env.HOST;
+export const JWT_SECRET = process.env.JWT_SECRET;

@@ -1,13 +1,12 @@
-import { Controller, Get, Post, Body, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards } from '@nestjs/common';
 import { MercadopagoService } from './mercadopago.service';
-import { CreateMercadopagoDto } from './dto/create-mercadopago.dto';
-import { MercadoPagoPreApproval } from 'mercadopago/resources/preapproval';
-import { MercadoPagoMerchantOrder } from 'mercadopago/resources/merchantOrders';
+import { AuthGuard } from '../../guards/auth.guard';
 
 @Controller('mercadopago')
 export class MercadopagoController {
   constructor(private readonly mercadopagoService: MercadopagoService) {}
 
+  @UseGuards(AuthGuard)
   @Post()
   async create(@Body() createMercadopagoDto: any) {
     return await this.mercadopagoService
