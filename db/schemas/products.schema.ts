@@ -3,6 +3,7 @@ import { integer, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categories } from './categories.schema';
 import { cartAndProducts } from './cart_products.schema';
+import z from 'zod';
 
 export const productStatusEnum = pgEnum('active', ['active', 'inactive']);
 
@@ -49,3 +50,4 @@ export const productInsertSchema = createInsertSchema(products, {
 export const insertProductSchema = createInsertSchema(products);
 export const selectProductSchema = createSelectSchema(products);
 export type ProductEntity = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;

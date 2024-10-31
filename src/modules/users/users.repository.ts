@@ -26,6 +26,7 @@ export class UsersRepository {
       .findMany({
         limit: limit + 1,
         where: gte(users.id, cursor),
+        orderBy: users.id
       })
       .catch((err) => {
         throw new BadRequestException('Error fetching users');

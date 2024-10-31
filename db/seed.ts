@@ -6,7 +6,6 @@ import {
   categories,
   users,
   type CreateUserDto,
-  type Categories,
 } from './schemas/schema';
 
 import {
