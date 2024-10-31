@@ -28,7 +28,6 @@ import { LimitPipe } from '../products/pipes/limitPage.pipe';
 import { CreateUserDto } from '../../../db/schemas/schema';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RemoveUserProfileDto } from './dto/remove.dto';
-import { IsUUID } from 'class-validator';
 
 @Controller('users')
 @ApiTags('Users')

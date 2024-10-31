@@ -3,12 +3,17 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto, selectProductSchema, selectUserSchema, UserEntity, users } from '../../../db/schemas/schema';
+import {
+  CreateUserDto,
+  selectUserSchema,
+  UserEntity,
+  users,
+} from '../../../db/schemas/schema';
 import { db } from '../../config/db';
 import { eq, and, gte } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
 import { FindAllUsersDto } from './dto/findAll.dto';
-import {z} from 'zod'
+import { z } from 'zod';
 
 @Injectable()
 export class UsersRepository {
@@ -26,7 +31,7 @@ export class UsersRepository {
       .findMany({
         limit: limit + 1,
         where: gte(users.id, cursor),
-        orderBy: users.id
+        orderBy: users.id,
       })
       .catch((err) => {
         throw new BadRequestException('Error fetching users');
@@ -70,7 +75,7 @@ export class UsersRepository {
         email: users.email,
         id: users.id,
         name: users.name,
-        image: users.image,
+        image: users.profileImage,
       });
     if (updateUser.length == 0) throw new NotFoundException('User Not Found');
     return updateUser;
@@ -80,8 +85,8 @@ export class UsersRepository {
     const rowCount = (
       await db
         .update(users)
-        .set({ active: false })
-        .where(and(eq(users.id, id), eq(users.active, true)))
+        .set({ status: 'inactive' })
+        .where(and(eq(users.id, id), eq(users.status, 'active')))
     ).rowCount;
     if (rowCount == 0) throw new NotFoundException('User Not Found');
     return { message: 'User deleted Successfuly' };
@@ -92,7 +97,7 @@ export class UsersRepository {
 
     const resultUser = await db
       .update(users)
-      .set({ image: resultFile.secure_url })
+      .set({ profileImage: resultFile.secure_url })
       .where(eq(users.id, id))
       .returning();
 
@@ -107,7 +112,7 @@ export class UsersRepository {
 
     const result = await db
       .update(users)
-      .set({ image: 'default_profile_picture.png' })
+      .set({ profileImage: 'default_profile_picture.png' })
       .where(eq(users.id, userId))
       .returning();
 

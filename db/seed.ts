@@ -16,15 +16,13 @@ import {
 } from './gamesArray.objects';
 
 const main = async () => {
-
   const usersData: CreateUserDto[] = [];
-
 
   for (let i = 0; i < 15; i++) {
     usersData.push({
       name: faker.person.fullName(),
       email: faker.internet.email(),
-      image: faker.image.avatar(),
+      profileImage: faker.image.avatar(),
       username: faker.internet.userName(),
       password: faker.internet.password(),
     });

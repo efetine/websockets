@@ -53,7 +53,7 @@ export class AuthService {
         id: true,
         name: true,
         email: true,
-        image: true,
+        profileImage: true,
         password: true,
       },
     });

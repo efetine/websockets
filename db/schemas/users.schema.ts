@@ -6,8 +6,15 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { orders } from './orders.schema';
 import { pgEnum } from 'drizzle-orm/pg-core';
+import { products } from './products.schema';
 
-export const pgRoleEnum = pgEnum('role_enum',['client', 'admin'])
+export const pgStatusEnum = pgEnum('status_enum', [
+  'active',
+  'inactive',
+  'banned',
+]);
+
+export const pgRoleEnum = pgEnum('role_enum', ['client', 'admin']);
 
 export const users = pgTable('user', {
   id: text('id')
@@ -17,16 +24,26 @@ export const users = pgTable('user', {
   name: text('name'),
   email: text('email').unique().notNull(),
   emailVerified: timestamp('emailVerified', { mode: 'date' }),
+  tokenConfirmation: text('tokenConfirmation'),
   password: text('password'),
   username: text('username'),
-  image: text('image').default('default_profile_picture.png').notNull(),
-  active: boolean().default(true).notNull(),
-  tokenConfirmation: text('tokenConfirmation'),
+  description: text('description'),
+  profileImage: text('profileImage')
+    .default('default_profile_picture.png')
+    .notNull(),
+  bannerImage: text('bannerImage')
+    .default(
+      'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730401954/pk3ghbuuvspa1wro9y7k.jpg',
+    )
+    .notNull(),
+  status: pgStatusEnum().default('active').notNull(),
   role: pgRoleEnum().default('client').notNull(),
+  bannedReason: text('bannedReason'),
 });
 
 export const userRelations = relations(users, ({ many }) => ({
   orders: many(orders),
+  wishlist: many(products),
 }));
 
 export const insertUserSchema = createInsertSchema(users);
@@ -34,7 +51,7 @@ export const selectUserSchema = createSelectSchema(users).pick({
   id: true,
   name: true,
   email: true,
-  image: true,
+  profileImage: true,
 });
 
 export type CreateUserDto = z.infer<typeof insertUserSchema>;
