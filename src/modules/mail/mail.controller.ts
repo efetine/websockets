@@ -165,4 +165,42 @@ export class MailController {
 
   @Post('verified-email/:token')
   async verifiedEmail(@Param('token') token: string) {}
+  @Post('send-coupon')
+  async sendCoupon(
+    @Body()
+    data: {
+      emails: string[];
+      coupons: {
+        couponCode: string;
+        discountPercentage: number;
+        expirationDate: string;
+      }[];
+    },
+  ) {
+    const { emails, coupons } = data;
+
+    if (!emails || !coupons || emails.length !== coupons.length) {
+      return {
+        message:
+          'Invalid data provided. Ensure emails and coupons are provided in equal numbers.',
+      };
+    }
+
+    try {
+      for (let i = 0; i < emails.length; i++) {
+        const user = { email: emails[i] };
+        const coupon = coupons[i];
+
+        await this.mailService.sendCouponMail(user, coupon);
+      }
+
+      return { message: 'All coupons sent successfully!' };
+    } catch (error) {
+      console.error('Error sending coupons:', error);
+      return { message: 'Error sending some coupons', error };
+    }
+  }
+
+  @Post('verified-email')
+  async verifiedEmail() {}
 }

@@ -1,7 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { CouponRepository } from './coupon.repository';
 import { CreateCouponDto } from '../../../db/schemas/coupon.schema';
@@ -18,45 +16,26 @@ export class CouponService {
     return await this.couponRepository.createDiscountCoupon(couponData);
   }
 
-  async validateCoupon(couponCode: string) {
-    return await this.couponRepository.validateCouponExpired(couponCode);
+  async validateCoupon(id: string) {
+    return await this.couponRepository.validateCouponExpired(id);
   }
 
-  async applyCouponToOrder(
-    orderAmount: number,
-    couponCode: string,
-  ): Promise<{ adjustedTotal: number; coupon: CreateCouponDto }> {
-    const coupon = await this.couponRepository.findOneByCode(couponCode);
-
-    if (!coupon.isActive || new Date(coupon.expirationDate) < new Date()) {
-      throw new BadRequestException('Coupon is expired or not valid');
-    }
-
-    const discountAmount = (orderAmount * coupon.discountPercentage) / 100;
-    const adjustedTotal = orderAmount - discountAmount;
-
-    return { adjustedTotal, coupon };
+  async findOneBy(id: string) {
+    return await this.couponRepository.findOneById(id);
   }
 
-  async findOneBy(couponCode: string) {
-    return await this.couponRepository.findOneByCode(couponCode);
+  async deleteCoupon(id: string) {
+    return await this.couponRepository.deleteDiscountCoupon(id);
   }
 
-  async deleteCoupon(couponCode: string) {
-    return await this.couponRepository.deleteDiscountCoupon(couponCode);
-  }
-
-  async updateDiscountPercentage(
-    couponCode: string,
-    newDiscountPercentage: number,
-  ) {
+  async updateDiscountPercentage(id: string, newDiscountPercentage: number) {
     return await this.couponRepository.updateDiscountPercentage(
-      couponCode,
+      id,
       newDiscountPercentage,
     );
   }
 
-  async cancelCouponByCode(couponCode: string): Promise<{ message: string }> {
-    return await this.couponRepository.cancelCouponByCode(couponCode);
+  async changeCouponStatusById(id: string): Promise<{ message: string }> {
+    return await this.couponRepository.changeStatus(id);
   }
 }

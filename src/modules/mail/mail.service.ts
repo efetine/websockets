@@ -318,4 +318,47 @@ export class MailService {
     if (result.length === 0)
       throw new BadRequestException(`Token invalid or deprecated.`);
   }
+  async sendCouponMail(
+    user: { email: string },
+    coupon: {
+      couponCode: string;
+      discountPercentage: number;
+      expirationDate: string;
+    },
+  ) {
+    const mailOptions = {
+      from: "'GameVault' <pablobattola@gmail.com>",
+      to: user.email,
+      subject: 'Congratulations! Here’s Your Gift Coupon!',
+      html: `
+      <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f9f9f9;">
+        <h2 style="color: #333;">🎉 Hello, ${user.email}! 🎉</h2>
+        <p>We are thrilled to present you with an exclusive gift coupon!</p>
+        <div style="border: 2px dashed #4CAF50; padding: 20px; margin: 20px auto; width: 80%; max-width: 600px; border-radius: 10px; background-color: #e9f8e9;">
+          <h3 style="color: #4CAF50; font-size: 24px;">Coupon Code: <strong style="font-size: 28px;">${coupon.couponCode}</strong></h3>
+          <p style="font-size: 20px;">Discount: <strong style="color: #ff5722; font-size: 26px;">${coupon.discountPercentage}% OFF</strong></p>
+          <p style="font-size: 18px;">Valid until: <strong>${coupon.expirationDate}</strong></p>
+        </div>
+        <p>Use this code on your next purchase and enjoy your discount!</p>
+        <img src="cid:logo@gamevault" alt="GameVault" style="width: 100%; max-width: 600px;"/>
+        <p>Thank you for being a part of <strong>GameVault</strong>.</p>
+      </div>
+    `,
+      attachments: [
+        {
+          filename: 'logo.png',
+          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          cid: 'logo@gamevault',
+        },
+      ],
+    };
+
+    try {
+      const info = await this.transporter.sendMail(mailOptions);
+      console.log(`Coupon email sent: ${info.messageId}`);
+    } catch (error) {
+      console.error('Error sending coupon email:', error);
+    }
+  }
+
 }
