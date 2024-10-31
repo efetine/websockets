@@ -4,7 +4,7 @@ import { Payment, Preference, MerchantOrder, PaymentRefund } from 'mercadopago';
 import { HOST } from '../../config/enviroments.config';
 import { db } from '../../config/db';
 import { eq, inArray } from 'drizzle-orm';
-import { products } from '../../../db/schemas/schema';
+import { products, SelectUserDto } from '../../../db/schemas/schema';
 import { CreateMercadopagoDto } from './dto/create-mercadopago.dto';
 import { OrdersService } from '../orders/orders.service';
 import { UsersService } from '../users/users.service';
@@ -17,88 +17,81 @@ export class MercadopagoService {
     private usersService: UsersService,
     private productsService: ProductsService,
   ) {}
-  async create(body: CreateMercadopagoDto) {
-      const user = await this.usersService.findOneBy(body.user).catch(() => {
-        return undefined
-      })
+  async create(body: CreateMercadopagoDto, user: SelectUserDto) {
+    if (!user?.id) {
+      throw new BadRequestException('User not found');
+    }
+    const productsArr = await this.productsService.findManyByIds(
+      body.products.map(({ id }) => id),
+    );
 
-      if (!user?.id) {
-        throw new BadRequestException('User not found');
+    let amount = 0;
+
+    const productsForPreference = productsArr.map((product) => {
+      const prodReq = body.products.find(({ id }) => id === product.id);
+      if (!prodReq) {
+        throw new BadRequestException(
+          `Product by id equal ${product.id} not found`,
+        );
       }
-      const productsArr = await this.productsService.findManyByIds(
-        body.products.map(({ id }) => id),
-      );
-
-      let amount = 0
-
-      const productsForPreference = productsArr.map((product) => {
-        const prodReq = body.products.find(({ id }) => id === product.id);
-        if (!prodReq) {
-          throw new BadRequestException(
-            `Product by id equal ${product.id} not found`,
-          );
-        }
-        if (!prodReq.quantity) {
-          throw new BadRequestException(
-            `Quantity of product by id equal ${product.id} is required`,
-          );
-        }
-        if (!product) {
-          throw new BadRequestException(
-            `Product by id equal ${prodReq.id} not found`,
-          );
-        }
-        if (product.stock < prodReq.quantity) {
-          throw new BadRequestException(
-            `Product by id equal ${product.id} out of stock`,
-          );
-        }
-        amount += product.price * prodReq.quantity
-        return {
-          id: product.id,
-          title: product.name,
-          quantity: prodReq.quantity,
-          unit_price: product.price,
-          currency_id: 'ARS',
-          category_id: product.categoryId,
-        };
-      });
-      const productForOrder = productsArr.map((product) => {
-        const prodReq = body.products.find(
-          ({ id }) => id === product.id,
-        ) as any;
-        return {
-          productId: product.id,
-          quantity: prodReq.quantity,
-          price: product.price,
-        };
-      });
-
-      const orderId = await this.ordersService.create({
-        userId: user.id,
-        products: productForOrder,
-        amount
-      });
-
-      const orderBody = {
-        body: {
-          items: productsForPreference,
-          payer: {
-            email: user.email,
-            id: user.id,
-          },
-          notification_url: `${HOST}/mercadopago/webhook`,
-          metadata: {
-            userId: user.id,
-            email: user.email,
-            orderId,
-          },
-        },
+      if (!prodReq.quantity) {
+        throw new BadRequestException(
+          `Quantity of product by id equal ${product.id} is required`,
+        );
+      }
+      if (!product) {
+        throw new BadRequestException(
+          `Product by id equal ${prodReq.id} not found`,
+        );
+      }
+      if (product.stock < prodReq.quantity) {
+        throw new BadRequestException(
+          `Product by id equal ${product.id} out of stock`,
+        );
+      }
+      amount += product.price * prodReq.quantity;
+      return {
+        id: product.id,
+        title: product.name,
+        quantity: prodReq.quantity,
+        unit_price: product.price,
+        currency_id: 'ARS',
+        category_id: product.categoryId,
       };
+    });
+    const productForOrder = productsArr.map((product) => {
+      const prodReq = body.products.find(({ id }) => id === product.id) as any;
+      return {
+        productId: product.id,
+        quantity: prodReq.quantity,
+        price: product.price,
+      };
+    });
 
-      const preference = await new Preference(mpClient).create(orderBody);
-      return { url: preference };
-    
+    const orderId = await this.ordersService.create({
+      userId: user.id,
+      products: productForOrder,
+      amount,
+    });
+
+    const orderBody = {
+      body: {
+        items: productsForPreference,
+        payer: {
+          email: user.email,
+          id: user.id,
+        },
+        notification_url: `${HOST}/mercadopago/webhook`,
+        metadata: {
+          userId: user.id,
+          email: user.email,
+          orderId,
+        },
+      },
+    };
+
+    const preference = await new Preference(mpClient).create(orderBody);
+    return { url: preference.init_point, statusCode:201 };
   }
 
   async webhook(body: any) {
@@ -152,13 +145,14 @@ export class MercadopagoService {
           order: metadata.order_id,
         };
 
-        const dbResponse = await this.ordersService.updateToPayment(updatePaymentObject);
+        const dbResponse =
+          await this.ordersService.updateToPayment(updatePaymentObject);
 
         return dbResponse;
       }
 
       if (payment.status === 'rejected') {
-        console.log('fallo el pago')
+        console.log('fallo el pago');
         const updatePaymentObject = {
           mpOrder: payment.order.id,
           paid: false,

@@ -9,8 +9,5 @@ class product {
     quantity: number
 }
 export class CreateMercadopagoDto {
-    @IsUUID()
-    user:string
-
     products:product[]
 }

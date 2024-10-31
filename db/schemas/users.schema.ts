@@ -5,6 +5,9 @@ import { pgTable, timestamp } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { orders } from './orders.schema';
+import { pgEnum } from 'drizzle-orm/pg-core';
+
+export const pgRoleEnum = pgEnum('role_enum',['client', 'admin'])
 
 export const users = pgTable('user', {
   id: text('id')
@@ -19,6 +22,7 @@ export const users = pgTable('user', {
   image: text('image').default('default_profile_picture.png').notNull(),
   active: boolean().default(true).notNull(),
   tokenConfirmation: text('tokenConfirmation'),
+  role: pgRoleEnum().default('client').notNull(),
 });
 
 export const userRelations = relations(users, ({ many }) => ({
@@ -32,6 +36,7 @@ export const selectUserSchema = createSelectSchema(users).pick({
   email: true,
   image: true,
 });
+
 export type CreateUserDto = z.infer<typeof insertUserSchema>;
 export type UserEntity = typeof users.$inferInsert;
 
