@@ -245,7 +245,74 @@ export class CouponController {
       },
     },
   })
-  async changeCouponStatus(@Param('id', ParseUUIDPipe) id: string) {
-    return this.couponService.changeCouponStatusById(id);
+  async changeCouponStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() isAdmin: boolean,
+  ) {
+    return this.couponService.changeStatus(id, isAdmin);
+  }
+
+  @Get('code/:couponCode')
+  @ApiOperation({ summary: 'Get a coupon by coupon code' })
+  @ApiResponse({
+    status: 200,
+    description: 'Coupon retrieved successfully',
+    content: {
+      'application/json': {
+        example: {
+          id: '1234-5678-abcd-efgh',
+          couponCode: 'SAVE20',
+          discountPercentage: 20,
+          expirationDate: '2024-12-31',
+          isActive: true,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Coupon not found',
+    content: {
+      'application/json': {
+        example: {
+          message: 'Coupon not found',
+          error: 'Not Found',
+          statusCode: 404,
+        },
+      },
+    },
+  })
+  async findOneByCode(@Param('couponCode') couponCode: string) {
+    return this.couponService.findOneByCode(couponCode);
+  }
+
+  @Patch('toggle-status/:id')
+  @ApiOperation({ summary: 'Toggle coupon status by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Coupon status toggled successfully',
+    content: {
+      'application/json': {
+        example: {
+          message: 'Coupon has been activated',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Coupon not found',
+    content: {
+      'application/json': {
+        example: {
+          message: 'Coupon not found',
+          error: 'Not Found',
+          statusCode: 404,
+        },
+      },
+    },
+  })
+  async toggleStatus(@Param('id', ParseUUIDPipe) id: string) {
+    return this.couponService.toggleStatus(id);
   }
 }

@@ -1,4 +1,4 @@
-import { IsInt, IsPositive, IsString, IsUUID } from "class-validator"
+import { IsInt, IsPositive, IsString, IsUUID } from 'class-validator';
 
 class products {
   @IsUUID()
@@ -22,4 +22,5 @@ export class CreateOrderDto {
   products: products[];
 
   amount: number;
+
 }

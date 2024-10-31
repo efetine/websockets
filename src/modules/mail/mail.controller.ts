@@ -200,7 +200,4 @@ export class MailController {
       return { message: 'Error sending some coupons', error };
     }
   }
-
-  @Post('verified-email')
-  async verifiedEmail() {}
 }
