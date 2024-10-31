@@ -10,8 +10,8 @@ export class UsersService {
     return 'This action adds a new user';
   }
 
-  async findAll({ page, limit }: { page: number; limit: number }) {
-    return await this.usersRepository.findAllUsers({ page, limit });
+  async findAll({ cursor, limit }: { cursor?: string; limit: number }) {
+    return await this.usersRepository.findAllUsers({ cursor, limit });
   }
 
   async findOneBy(id: string): Promise<UserEntity> {

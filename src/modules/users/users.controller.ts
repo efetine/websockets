@@ -28,6 +28,7 @@ import { LimitPipe } from '../products/pipes/limitPage.pipe';
 import { CreateUserDto } from '../../../db/schemas/schema';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RemoveUserProfileDto } from './dto/remove.dto';
+import { IsUUID } from 'class-validator';
 
 @Controller('users')
 @ApiTags('Users')
@@ -117,10 +118,10 @@ export class UsersController {
   })
   @ApiOperation({ summary: 'Get All Paginated Users (page/limit)' })
   async findAll(
-    @Query('page', ParseIntPipe) page: number,
+    @Query('cursor') cursor: string,
     @Query('limit', LimitPipe) limit: number,
   ) {
-    return await this.usersService.findAll({ page, limit });
+    return await this.usersService.findAll({ cursor, limit });
   }
 
   @Get(':id')

@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { integer, pgEnum, pgTable, varchar } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categories } from './categories.schema';
 import { cartAndProducts } from './cart_products.schema';
 
@@ -47,4 +47,5 @@ export const productInsertSchema = createInsertSchema(products, {
   categoryId: (schema) => schema.categoryId.uuid('ID must be UUID'),
 });
 export const insertProductSchema = createInsertSchema(products);
+export const selectProductSchema = createSelectSchema(products);
 export type ProductEntity = typeof products.$inferSelect;

@@ -30,14 +30,16 @@ export const users = pgTable(
   {
     id: text('id')
       .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
+      .$defaultFn(() => crypto.randomUUID())
+      .notNull(),
     name: text('name'),
     email: text('email').unique().notNull(),
     emailVerified: timestamp('emailVerified', { mode: 'date' }),
     password: text('password'),
-    username: text('username').unique().notNull(),
+    username: text('username'),
     image: text('image').default('default_profile_picture.png').notNull(),
     active: boolean().default(true).notNull(),
+    tokenConfirmation: text('tokenConfirmation'),
   },
   (table) => {
     return {

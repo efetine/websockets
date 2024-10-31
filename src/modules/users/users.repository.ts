@@ -3,35 +3,50 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserDto, UserEntity, users } from '../../../db/schemas/schema';
+import { CreateUserDto, selectProductSchema, selectUserSchema, UserEntity, users } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, gte } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
+import { FindAllUsersDto } from './dto/findAll.dto';
+import {z} from 'zod'
 
 @Injectable()
 export class UsersRepository {
   constructor(private readonly filesService: FilesService) {}
 
   async findAllUsers({
-    page,
+    cursor,
     limit,
   }: {
-    page: number;
+    cursor?: string;
     limit: number;
-  }): Promise<CreateUserDto[]> {
-    const users = await db.query.users
+  }): Promise<FindAllUsersDto> {
+    if (!cursor) cursor = '';
+    const usersData = await db.query.users
       .findMany({
-        limit: limit,
-        offset: (page - 1) * limit,
+        limit: limit + 1,
+        where: gte(users.id, cursor),
       })
       .catch((err) => {
         throw new BadRequestException('Error fetching users');
       });
 
-    if (users.length === 0) {
-      throw new NotFoundException('Users not found');
+    let result = z.array(selectUserSchema).safeParse(usersData);
+    const validatedData = result.success ? result.data : [];
+
+    let nextCursor: string | null = null;
+
+    if (validatedData.length === 0)
+      return {
+        data: [],
+        nextCursor,
+      };
+
+    if (validatedData.length > limit) {
+      nextCursor = validatedData.pop()!.id;
     }
-    return users;
+
+    return { data: validatedData, nextCursor };
   }
 
   async findOneById(id: string): Promise<UserEntity> {

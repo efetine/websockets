@@ -6,7 +6,7 @@ export class LimitPipe implements PipeTransform {
     value = parseInt(value);
 
     if (isNaN(value)) {
-      throw new BadRequestException('limit dont is a int');
+      value = 10;
     }
 
     if (value < 1) {
