@@ -28,6 +28,7 @@ export const orders = pgTable('orders', {
   createdAt: varchar('created_at', { length: 256 }).default(
     new Date().toISOString(),
   ),
+  discountPercentage:integer("discount_percentage").default(0)
 });
 
 export type insertOrders = typeof orders.$inferInsert;
