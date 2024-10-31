@@ -5,6 +5,7 @@ export interface IgamesObjects {
   category: string;
   imageUrl: string;
   description: string;
+  type?: 'digital' | 'physical'
 }
 export interface IgamesObjectsForDb {
   name: string;
@@ -17,10 +18,110 @@ export interface IgamesObjectsForDb {
 }
 export const gamesArray: IgamesObjects[] = [
   {
+    name: 'PlayStation 5',
+    price: 499,
+    stock: 5,
+    category: 'console',
+    imageUrl: 'https://m.media-amazon.com/images/I/71vZypjNkPS._SL1500_.jpg',
+    description:
+      'Experience lightning-fast loading, ultra-high speed SSD, and breathtaking graphics on the PlayStation 5 console.',
+    type: 'physical',
+  },
+  {
+    name: 'Xbox Series X',
+    price: 499,
+    stock: 8,
+    category: 'console',
+    imageUrl: 'https://m.media-amazon.com/images/I/71NBQ2a52CL._SL1500_.jpg',
+    description:
+      'Play thousands of titles from four generations of Xbox with the next-gen power of Xbox Series X.',
+    type: 'physical',
+  },
+  {
+    name: 'Nintendo Switch OLED Model',
+    price: 349,
+    stock: 10,
+    category: 'console',
+    imageUrl: 'https://m.media-amazon.com/images/I/61i+0hVxwzL._SL1500_.jpg',
+    description:
+      'Featuring a vibrant OLED screen, enhanced audio, and 64GB of internal storage, perfect for gaming on the go.',
+    type: 'physical',
+  },
+  {
+    name: 'SteelSeries Arctis Pro Wireless Gaming headset',
+    price: 329,
+    stock: 15,
+    category: 'headset',
+    imageUrl: 'https://m.media-amazon.com/images/I/71B9g8mYHJL._SL1500_.jpg',
+    description:
+      'High-fidelity audio, dual wireless technology, and premium materials make this the ultimate gaming headset.',
+    type: 'physical',
+  },
+  {
+    name: 'Logitech G Pro X Gaming keyboard',
+    price: 149,
+    stock: 20,
+    category: 'keyboard',
+    imageUrl: 'https://m.media-amazon.com/images/I/71+d2TUI6wL._SL1500_.jpg',
+    description:
+      'A compact mechanical keyboard built for esports, featuring swappable Pro-grade switches.',
+    type: 'physical',
+  },
+  {
+    name: 'Razer DeathAdder V2 Gaming mouse',
+    price: 69,
+    stock: 25,
+    category: 'mouse',
+    imageUrl: 'https://m.media-amazon.com/images/I/61vGQNUEsGL._SL1500_.jpg',
+    description:
+      'An iconic ergonomic mouse with ultra-fast optical switches and a precision 20,000 DPI sensor.',
+    type: 'physical',
+  },
+  {
+    name: 'Corsair K95 RGB Platinum XT Mechanical Gaming keyboard',
+    price: 199,
+    stock: 15,
+    category: 'keyboard',
+    imageUrl: 'https://m.media-amazon.com/images/I/81bU6SBfbIL._SL1500_.jpg',
+    description:
+      'Experience the pinnacle of gaming keyboards with dynamic RGB backlighting and Cherry MX Speed switches.',
+    type: 'physical',
+  },
+  {
+    name: 'Thrustmaster T300 RS GT Racing Wheel',
+    price: 399,
+    stock: 12,
+    category: 'controller',
+    imageUrl: 'https://m.media-amazon.com/images/I/81gCCCHx9JL._SL1500_.jpg',
+    description:
+      'An officially licensed PlayStation racing wheel with Force Feedback technology for an immersive driving experience.',
+    type: 'physical',
+  },
+  {
+    name: 'Elgato Game Capture HD60 S+',
+    price: 179,
+    stock: 18,
+    category: 'capture card',
+    imageUrl: 'https://m.media-amazon.com/images/I/51zXNTH7uKL._SL1000_.jpg',
+    description:
+      'Stream and record in stunning 1080p60 HDR10 quality with ultra-low latency for smooth gameplay capture.',
+    type: 'physical',
+  },
+  {
+    name: 'HyperX Cloud Alpha S Gaming headset',
+    price: 129,
+    stock: 22,
+    category: 'headset',
+    imageUrl: 'https://m.media-amazon.com/images/I/61DjwgSIk-L._SL1500_.jpg',
+    description:
+      'Enhanced with custom-tuned virtual 7.1 surround sound, durable aluminum frame, and dual-chamber drivers for immersive audio.',
+    type: 'physical',
+  },
+  {
     name: 'PUBG: Battlegrounds',
     price: 25,
     stock: 10,
-    category: 'Battle Royale',
+    category: 'battle royale',
     imageUrl:
       'https://static.ivory.getloconow.com/games/0aee9f18-58fd-41c9-9c24-35266aa22262/square_cover/94929c57-6130-4108-ac1d-42274fec2092.png',
     description:
@@ -50,7 +151,7 @@ export const gamesArray: IgamesObjects[] = [
     name: 'Naraka: Bladepoint',
     price: 20,
     stock: 10,
-    category: 'Action Battle Royale',
+    category: 'Action battle royale',
     imageUrl:
       'https://i0.wp.com/achievementunlocker.com/wp-content/uploads/2022/08/1837410971.png',
     description:
@@ -60,7 +161,7 @@ export const gamesArray: IgamesObjects[] = [
     name: 'Apex Legends',
     price: 28,
     stock: 10,
-    category: 'Battle Royale',
+    category: 'battle royale',
     imageUrl:
       'https://www.clavecd.es/wp-content/uploads/buy-apex-legends-loba-edition-cd-key-compare-prices.png',
     description:
@@ -150,7 +251,7 @@ export const gamesArray: IgamesObjects[] = [
     name: 'Fortnite',
     price: 0,
     stock: 15,
-    category: 'Battle Royale',
+    category: 'battle royale',
     imageUrl: 'https://m.media-amazon.com/images/I/61Rz3yF7mrL._SL1000_.jpg',
     description:
       "Enter Fortnite's massive free-to-play multiplayer battle. Build, shoot, and survive in this competitive action game.",
@@ -411,6 +512,12 @@ export const gamesArray: IgamesObjects[] = [
 ];
 
 export const categoriesArray = [
+  { name: 'console' },
+  { name: 'headset' },
+  { name: 'keyboard' },
+  { name: 'mouse' },
+  { name: 'controller' },
+  { name: 'capture card' },
   { name: 'battle royale' },
   { name: 'action rpg' },
   { name: 'moba' },

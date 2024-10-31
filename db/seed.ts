@@ -17,7 +17,6 @@ import {
 
 const main = async () => {
 
-
   const usersData: CreateUserDto[] = [];
 
 
@@ -32,8 +31,6 @@ const main = async () => {
   }
 
   await db.insert(users).values(usersData);
-
-  /* await db.$client.end(); */
 };
 
 const elMain = async () => {
@@ -47,7 +44,7 @@ const elMain = async () => {
       name: object.name,
       price: object.price,
       description: object.description,
-      type: 'digital',
+      type: object.type || 'digital',
       stock: object.stock,
       categoryId: resultCategories.find(
         (categorie) => categorie.name == object.category.toLowerCase(),
