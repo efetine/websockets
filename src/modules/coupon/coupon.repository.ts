@@ -38,7 +38,6 @@ export class CouponRepository {
       .from(coupons)
       .where(eq(coupons.id, id))
       .execute();
-    console.log(coupon);
     if (!coupon) {
       throw new BadRequestException('Coupon not found');
     }
@@ -107,7 +106,42 @@ export class CouponRepository {
     return updatedCoupon[0];
   }
 
-  async changeStatus(id: string): Promise<{ message: string }> {
+  async changeCouponStatusById(
+    id: string,
+    isActive: boolean,
+  ): Promise<{ message: string }> {
+    const [coupon] = await db
+      .select()
+      .from(coupons)
+      .where(eq(coupons.id, id))
+      .execute();
+
+    if (!coupon) {
+      throw new BadRequestException('Coupon not found');
+    }
+    await db
+      .update(coupons)
+      .set({ isActive })
+      .where(eq(coupons.id, id))
+      .execute();
+
+    const statusMessage = isActive ? 'activated' : 'deactivated';
+    return { message: `Coupon has been ${statusMessage}` };
+  }
+  async findOneByCode(couponCode: string): Promise<CreateCouponDto> {
+    const [coupon] = await db
+      .select()
+      .from(coupons)
+      .where(eq(coupons.couponCode, couponCode))
+      .execute();
+
+    if (!coupon) {
+      throw new NotFoundException('Coupon not found');
+    }
+
+    return coupon;
+  }
+  async changeActive(id: string): Promise<{ message: string }> {
     const [coupon] = await db
       .select()
       .from(coupons)
@@ -119,8 +153,7 @@ export class CouponRepository {
     }
 
     const newStatus = !coupon.isActive;
-
-    const result = await db
+    await db
       .update(coupons)
       .set({ isActive: newStatus })
       .where(eq(coupons.id, id))

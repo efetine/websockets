@@ -9,5 +9,6 @@ class product {
     quantity: number
 }
 export class CreateMercadopagoDto {
-    products:product[]
+    products: product[]
+    couponCode?: string
 }

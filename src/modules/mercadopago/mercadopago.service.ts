@@ -1,64 +1,117 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { mpClient } from '../../config/mercadopago.config';
-import { Payment, Preference, MerchantOrder, PaymentRefund } from 'mercadopago';
+import { Payment, Preference, PaymentRefund } from 'mercadopago';
 import { HOST } from '../../config/enviroments.config';
-import { db } from '../../config/db';
-import { eq, inArray } from 'drizzle-orm';
-import { products, SelectUserDto } from '../../../db/schemas/schema';
 import { CreateMercadopagoDto } from './dto/create-mercadopago.dto';
 import { OrdersService } from '../orders/orders.service';
-import { UsersService } from '../users/users.service';
 import { ProductsService } from '../products/products.service';
+import { CouponService } from '../coupon/coupon.service';
+import { SelectUserDto } from '../../../db/schemas/users.schema';
 
 @Injectable()
 export class MercadopagoService {
   constructor(
     private ordersService: OrdersService,
-    private usersService: UsersService,
     private productsService: ProductsService,
+    private couponService: CouponService,
   ) {}
+
   async create(body: CreateMercadopagoDto, user: SelectUserDto) {
     if (!user?.id) {
       throw new BadRequestException('User not found');
     }
+
     const productsArr = await this.productsService.findManyByIds(
       body.products.map(({ id }) => id),
     );
 
     let amount = 0;
+    let discountAmount = 0;
+    let coupon: any;
+    const couponCode = body.couponCode;
 
-    const productsForPreference = productsArr.map((product) => {
-      const prodReq = body.products.find(({ id }) => id === product.id);
-      if (!prodReq) {
+    if (couponCode) {
+      coupon = await this.couponService.findOneByCode(couponCode);
+      if (!coupon) {
         throw new BadRequestException(
-          `Product by id equal ${product.id} not found`,
+          `Coupon with code ${couponCode} not Found`,
         );
       }
-      if (!prodReq.quantity) {
+
+      if (!coupon.isActive) {
         throw new BadRequestException(
-          `Quantity of product by id equal ${product.id} is required`,
+          `Coupon with code ${couponCode} is not Active`,
         );
       }
-      if (!product) {
+
+      const currentDate = new Date();
+      if (currentDate > new Date(coupon.expirationDate)) {
         throw new BadRequestException(
-          `Product by id equal ${prodReq.id} not found`,
+          `Coupon with code ${couponCode} has expired`,
         );
       }
-      if (product.stock < prodReq.quantity) {
-        throw new BadRequestException(
-          `Product by id equal ${product.id} out of stock`,
+
+      discountAmount = (amount * coupon.discountPercentage) / 100;
+    }
+
+    const productsForPreference = await Promise.all(
+      productsArr.map(async (product) => {
+        const prodReq = body.products.find(({ id }) => id === product.id);
+        if (!prodReq) {
+          throw new BadRequestException(
+            `Product by id equal ${product.id} not found`,
+          );
+        }
+        if (!prodReq.quantity) {
+          throw new BadRequestException(
+            `Quantity of product by id equal ${product.id} is required`,
+          );
+        }
+        if (!product) {
+          throw new BadRequestException(
+            `Product by id equal ${prodReq.id} not found`,
+          );
+        }
+        if (product.stock < prodReq.quantity) {
+          throw new BadRequestException(
+            `Product by id equal ${product.id} out of stock`,
+          );
+        }
+
+        let unitPrice = product.price;
+        console.log(`Original price of product ${product.id}: ${unitPrice}`);
+
+        if (couponCode && coupon && coupon.isActive) {
+          const discountAmount = (unitPrice * coupon.discountPercentage) / 100;
+          unitPrice -= discountAmount;
+          console.log(
+            `New price of product ${product.id} after discount: ${unitPrice}`,
+          );
+        }
+
+        amount += unitPrice * prodReq.quantity;
+        console.log(
+          `Updated amount after adding product ${product.id}: ${amount}`,
         );
-      }
-      amount += product.price * prodReq.quantity;
-      return {
-        id: product.id,
-        title: product.name,
-        quantity: prodReq.quantity,
-        unit_price: product.price,
-        currency_id: 'ARS',
-        category_id: product.categoryId,
-      };
-    });
+
+        return {
+          id: product.id,
+          title: product.name,
+          quantity: prodReq.quantity,
+          unit_price: unitPrice,
+          currency_id: 'ARS',
+          category_id: product.categoryId,
+        };
+      }),
+    );
+
+    if (couponCode) {
+      await this.couponService.changeStatus(coupon.id, false);
+      console.log(`Coupon with ID: ${coupon.id} has been disabled`);
+    }
+
+    const totalAfterDiscount = Math.round(amount - discountAmount);
+
     const productForOrder = productsArr.map((product) => {
       const prodReq = body.products.find(({ id }) => id === product.id) as any;
       return {
@@ -71,8 +124,9 @@ export class MercadopagoService {
     const orderId = await this.ordersService.create({
       userId: user.id,
       products: productForOrder,
-      amount,
+      amount: totalAfterDiscount,
     });
+    console.log('Order created with ID:', orderId);
 
     const orderBody = {
       body: {
@@ -91,16 +145,21 @@ export class MercadopagoService {
     };
 
     const preference = await new Preference(mpClient).create(orderBody);
-    return { url: preference.init_point, statusCode:201 };
+
+    return { url: preference.init_point, statusCode: 201 };
   }
 
   async webhook(body: any) {
     if (body.data) {
       const payment: any = await new Payment(mpClient).get(body.data);
-      console.log(payment.id);
+      console.log('Payment received:', payment);
+
       const products = payment.additional_info.items;
       const metadata = payment.metadata;
+
       if (payment.status == 'approved') {
+        console.log('Payment approved:', payment.id);
+
         const productsData = await this.productsService.findManyByIds(
           products.map((product: { id: any }) => product.id),
         );
@@ -117,14 +176,16 @@ export class MercadopagoService {
               const updatePaymentObject = {
                 mpOrder: payment.order.id,
                 paid: false,
-                status: 'refound',
+                status: 'refund',
                 order: metadata.order_id,
               };
 
               await this.ordersService.updateToPayment(updatePaymentObject);
 
-              throw new BadRequestException('Stock insuficient');
-            } catch (error) {}
+              throw new BadRequestException('Insufficient stock');
+            } catch (error) {
+              console.error('Error processing refund:', error);
+            }
           }
         });
 
@@ -147,12 +208,14 @@ export class MercadopagoService {
 
         const dbResponse =
           await this.ordersService.updateToPayment(updatePaymentObject);
+        console.log('Payment status updated to "paid":', dbResponse);
 
         return dbResponse;
       }
 
       if (payment.status === 'rejected') {
-        console.log('fallo el pago');
+        console.log('Payment rejected:', payment.id);
+
         const updatePaymentObject = {
           mpOrder: payment.order.id,
           paid: false,

@@ -35,7 +35,18 @@ export class CouponService {
     );
   }
 
-  async changeCouponStatusById(id: string): Promise<{ message: string }> {
-    return await this.couponRepository.changeStatus(id);
+  async changeStatus(
+    id: string,
+    isActive: boolean,
+  ): Promise<{ message: string }> {
+    return await this.couponRepository.changeCouponStatusById(id, isActive);
+  }
+  async findOneByCode(couponCode: string) {
+    return await this.couponRepository.findOneByCode(couponCode);
+  }
+  async toggleStatus(id: string): Promise<{ message: string }> {
+    const coupon = await this.couponRepository.findOneById(id);
+    const newStatus = !coupon.isActive;
+    return this.couponRepository.changeActive(id);
   }
 }
