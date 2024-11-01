@@ -1,6 +1,6 @@
 import z from 'zod';
 
-import { paginationDto } from './pagination.dto';
+import { paginationDto } from '../../../schemas/pagination.dto';
 
 export const getProductsSchema = z
   .object({

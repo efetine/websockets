@@ -4,16 +4,39 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { eq, gte } from 'drizzle-orm';
+
 import { categories, InsertCategory } from '../../../db/schemas/schema';
 import { db } from '../../config/db';
-import { eq } from 'drizzle-orm';
+import { GetCategoriesDto } from './dto/get-categories.dto';
+import { PaginatedCategoriesDto } from './dto/paginated-categories.dto';
 
 @Injectable()
 export class CategoriesRepository {
-  async findAll(): Promise<InsertCategory[]> {
+  async findAll({
+    cursor,
+    limit,
+  }: GetCategoriesDto): Promise<PaginatedCategoriesDto> {
     try {
-      const categories = await db.query.categories.findMany();
-      return categories;
+      const limitWithExtra = limit + 1;
+
+      const selectedCategories = await db
+        .select()
+        .from(categories)
+        .where(cursor ? gte(categories.id, cursor) : undefined)
+        .limit(limitWithExtra)
+        .orderBy(categories.id);
+
+      let nextCursor: string | null = null;
+
+      if (selectedCategories.length === limitWithExtra) {
+        nextCursor = selectedCategories[selectedCategories.length - 1].id;
+        selectedCategories.pop();
+      }
+
+      console.log({ selectedCategories, nextCursor });
+
+      return { data: selectedCategories, nextCursor };
     } catch {
       throw new InternalServerErrorException('Error fetching Categories');
     }

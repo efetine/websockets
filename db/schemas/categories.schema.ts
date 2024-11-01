@@ -1,10 +1,8 @@
 import { relations } from 'drizzle-orm';
-import {
-  pgTable,
-  varchar,
-} from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
+import { pgTable, varchar } from 'drizzle-orm/pg-core';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
+
 import { products } from './products.schema';
 
 export const categories = pgTable('categories', {
@@ -23,3 +21,6 @@ export const insertCategorySchema = createInsertSchema(categories, {
   name: (schema) => schema.name.min(3).max(50),
 });
 export type InsertCategory = z.infer<typeof insertCategorySchema>;
+
+export const selectCategorySchema = createSelectSchema(categories);
+export type SelectCategory = z.infer<typeof selectCategorySchema>;

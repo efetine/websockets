@@ -47,11 +47,8 @@ export const userRelations = relations(users, ({ many }) => ({
 }));
 
 export const insertUserSchema = createInsertSchema(users);
-export const selectUserSchema = createSelectSchema(users).pick({
-  id: true,
-  name: true,
-  email: true,
-  profileImage: true,
+export const selectUserSchema = createSelectSchema(users).omit({
+  password: true,
 });
 
 export type CreateUserDto = z.infer<typeof insertUserSchema>;

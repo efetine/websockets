@@ -49,13 +49,6 @@ export class AuthService {
 
     const userFound = await db.query.users.findFirst({
       where: eq(users.email, loginDto.email),
-      columns: {
-        id: true,
-        name: true,
-        email: true,
-        profileImage: true,
-        password: true,
-      },
     });
 
     if (userFound === undefined) {

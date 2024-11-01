@@ -9,6 +9,8 @@ import {
   BadRequestException,
   ParseUUIDPipe,
   Put,
+  Query,
+  HttpException,
 } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import {
@@ -22,6 +24,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { paginationDto } from '../../schemas/pagination.dto';
+import { PaginatedCategoriesDto } from './dto/paginated-categories.dto';
 
 @Controller('categories')
 @ApiTags('Categories')
@@ -203,8 +207,17 @@ export class CategoriesController {
     },
   })
   @ApiOperation({ summary: 'Get All Categories' })
-  async findAll(): Promise<InsertCategory[]> {
-    return await this.categoriesService.findAll();
+  async findAll(
+    @Query('cursor') cursor: string,
+    @Query('limit') limit: number,
+  ): Promise<PaginatedCategoriesDto> {
+    const validation = paginationDto.safeParse({ cursor, limit });
+
+    if (validation.success === false) {
+      throw new HttpException(validation.error, 400);
+    }
+
+    return await this.categoriesService.findAll(validation.data);
   }
 
   @Get(':uuid')

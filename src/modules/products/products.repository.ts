@@ -23,7 +23,7 @@ export class ProductsRepository {
     search,
     type,
   }: GetProductsDto): Promise<{
-    products: Omit<ProductEntity, 'categoryId'>[];
+    data: Omit<ProductEntity, 'categoryId'>[];
     nextCursor: string | null;
   }> {
     const where = [gte(products.stock, 1), eq(products.active, 'active')];
@@ -63,7 +63,7 @@ export class ProductsRepository {
 
     if (selectedProducts.length === 0)
       return {
-        products: [],
+        data: [],
         nextCursor,
       };
 
@@ -72,7 +72,7 @@ export class ProductsRepository {
     }
 
     return {
-      products: selectedProducts,
+      data: selectedProducts,
       nextCursor,
     };
   }
@@ -110,17 +110,16 @@ export class ProductsRepository {
     cursor: string;
     limit: number;
   }): Promise<Omit<InsertProduct, 'description' | 'categoryId' | 'stock'>[]> {
-    console.log(cursor);
     const productsArr = await db.query.products
       .findMany({
-        with: { category: { columns: { name: true } } },
+        with: { category: { columns: { id: true, name: true } } },
         where: and(
           gt(products.stock, 1),
           eq(products.active, 'active'),
           eq(products.categoryId, category),
           gte(products.id, cursor),
         ),
-        columns: { categoryId: false, description: false, stock: false },
+        columns: { categoryId: false },
         limit: limit,
       })
       .catch((err) => {

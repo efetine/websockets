@@ -80,7 +80,7 @@ export class ProductsService {
     data.splice(limit, 1);
     return {
       data,
-      cursor: cursor,
+      nextCursor: cursor,
     };
   }
 

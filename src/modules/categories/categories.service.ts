@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { CategoriesRepository } from './categories.repository';
 import { InsertCategory } from '../../../db/schemas/schema';
+import { GetCategoriesDto } from './dto/get-categories.dto';
+import { PaginatedCategoriesDto } from './dto/paginated-categories.dto';
 
 @Injectable()
 export class CategoriesService {
   constructor(private categoriesRepository: CategoriesRepository) {}
 
-  async findAll(): Promise<InsertCategory[]> {
-    return await this.categoriesRepository.findAll();
+  async findAll(dto: GetCategoriesDto): Promise<PaginatedCategoriesDto> {
+    return await this.categoriesRepository.findAll(dto);
   }
 
   async findOne(id: string): Promise<InsertCategory> {
