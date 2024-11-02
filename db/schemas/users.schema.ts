@@ -43,7 +43,6 @@ export const users = pgTable('user', {
 
 export const userRelations = relations(users, ({ many }) => ({
   orders: many(orders),
-  wishlist: many(products),
 }));
 
 export const insertUserSchema = createInsertSchema(users);

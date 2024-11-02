@@ -4,7 +4,6 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categories } from './categories.schema';
 import { cartAndProducts } from './cart_products.schema';
 import z from 'zod';
-import { users } from './users.schema';
 
 export const productStatusEnum = pgEnum('active', ['active', 'inactive']);
 
@@ -38,7 +37,6 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [categories.id],
   }),
   cart: many(cartAndProducts),
-  wishlist: many(users),
 }));
 
 export const productInsertSchema = createInsertSchema(products, {
