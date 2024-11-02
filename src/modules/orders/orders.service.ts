@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ordersRepository } from './orders.repository';
+import {
+  PaginationByUserDto,
+  PaginationCursorNumberDto,
+  PaginationDto,
+} from '../../schemas/pagination.dto';
 
 @Injectable()
 export class OrdersService {
@@ -17,61 +22,15 @@ export class OrdersService {
     return dbResponse;
   }
 
-  async findAll(cursor: number | null, limit: number, userId: string) {
-    limit++;
-    const prevCursor = cursor ? +cursor : null;
-    if (!cursor) cursor = 0;
-    if (!limit || limit > 20) limit = 20;
-
-    const data = await this.ordersRepository.getOrdersByUser(
-      userId,
-      cursor,
-      limit,
-    );
-
-
-    if (!data[limit - 1]?.id) {
-      cursor = null;
-    } else {
-      cursor = data[limit - 1].id;
-    }
-
-    cursor;
-    data.splice(limit, 1);
-    console.log(cursor);
-    return {
-      data,
-      cursor: cursor,
-      prevCursor: prevCursor,
-    };
+  async findAllByUser(paginationByUserDto: PaginationByUserDto) {
+    return await this.ordersRepository.getOrdersByUser(paginationByUserDto);
   }
 
   async findOne(id: number) {
     return await this.ordersRepository.getOrderById(id);
   }
 
-  async findAllAdmin(cursor: number | null, limit: number) {
-    limit++;
-    const prevCursor = cursor ? +cursor : null;
-    if (!cursor) cursor = 0;
-    if (!limit || limit > 20) limit = 20;
-
-    const data = await this.ordersRepository.findAllAdmin(cursor, limit);
-
-
-    if (!data[limit - 1]?.id) {
-      cursor = null;
-    } else {
-      cursor = data[limit - 1].id;
-    }
-
-    cursor;
-    data.splice(limit, 1);
-    console.log(cursor);
-    return {
-      data,
-      cursor: cursor,
-      prevCursor: prevCursor,
-    };
+  async findAllAdmin(paginationDto: PaginationCursorNumberDto) {
+    return await this.ordersRepository.findAllAdmin(paginationDto);
   }
 }
