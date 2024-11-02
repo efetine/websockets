@@ -7,8 +7,8 @@ import type { GetProductsDto } from './dto/get-products.dto';
 export class ProductsService {
   constructor(private readonly productsRepository: ProductsRepository) {}
 
-  async create(body: InsertProduct) {
-    return await this.productsRepository.createProduct(body);
+  async createProduct(productData: InsertProduct) {
+    return await this.productsRepository.createProduct(productData);
   }
 
   async findAll(getProductsDto: GetProductsDto) {

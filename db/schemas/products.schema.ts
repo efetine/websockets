@@ -4,6 +4,8 @@ import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { categories } from './categories.schema';
 import { cartAndProducts } from './cart_products.schema';
 import z from 'zod';
+import { users } from './users.schema';
+import { files } from './files.schema';
 
 export const productStatusEnum = pgEnum('active', ['active', 'inactive']);
 
@@ -25,9 +27,9 @@ export const products = pgTable('products', {
   categoryId: varchar({ length: 255 })
     .references(() => categories.id)
     .notNull(),
-  imageUrl: varchar({ length: 255 })
-    .default('default_product_image.png')
-    .notNull(),
+    imageUrl: varchar({ length: 255 })
+      .default('default_product_image.png')
+      .notNull(),
   active: productStatusEnum().default('active').notNull(),
 });
 
@@ -37,6 +39,8 @@ export const productsRelations = relations(products, ({ one, many }) => ({
     references: [categories.id],
   }),
   cart: many(cartAndProducts),
+  wishlist: many(users),
+  images: many(files),
 }));
 
 export const productInsertSchema = createInsertSchema(products, {

@@ -6,3 +6,4 @@ export * from './orders.schema';
 export * from './cart.schema';
 export * from './cart_products.schema';
 export * from "./coupon.schema"
+export * from "./files.schema"

@@ -16,6 +16,7 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
+  UploadedFiles,
 } from '@nestjs/common';
 
 import { ProductsService } from './products.service';
@@ -29,17 +30,22 @@ import {
   ApiBody,
   ApiConsumes,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { RemoveOneImageDto } from './dto/remove.dto';
 import { typeEnum } from './dto/type.enum';
 import { getProductsSchema } from './dto/get-products.dto';
+import { FilesService } from '../files/files.service';
 
 @Controller('products')
 @ApiTags('Products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly filesService: FilesService,
+  ) {}
 
   @Post('create')
+  @UseInterceptors(FilesInterceptor('images', 10))
   @ApiBody({
     description: 'Request body for creating a Category',
     required: true,
@@ -92,12 +98,85 @@ export class ProductsController {
     },
   })
   @ApiOperation({ summary: 'Create Product' })
-  async create(@Body() body: InsertProduct) {
-    const validation = productInsertSchema.safeParse(body);
+  async create(
+    @Body() body: InsertProduct,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    // Conversión segura de price y stock a número
+    const parsedBody = {
+      ...body,
+      price: Number(body.price),
+      stock: Number(body.stock),
+    };
+
+    if (isNaN(parsedBody.price) || isNaN(parsedBody.stock)) {
+      throw new BadRequestException(
+        'El precio y el stock deben ser números válidos.',
+      );
+    }
+
+    // Validación de los datos con Zod
+    const validation = productInsertSchema.safeParse(parsedBody);
     if (!validation.success) {
       throw new BadRequestException(validation.error.issues);
     }
-    return await this.productsService.create(validation.data);
+
+    let imageResults: { public_id: string; secure_url: string }[] = [];
+
+    try {
+      if (files && files.length > 0) {
+        // Subida múltiple de imágenes y manejo de errores
+        const uploadResults =
+          await this.filesService.uploadMultipleImages(files);
+
+        // Filtrar solo los resultados que fueron exitosos
+        imageResults = uploadResults
+          .filter(
+            (
+              result: PromiseSettledResult<{
+                public_id: string;
+                secure_url: string;
+              }>,
+            ) => result.status === 'fulfilled',
+          )
+          .map(
+            (
+              result: PromiseFulfilledResult<{
+                public_id: string;
+                secure_url: string;
+              }>,
+            ) => result.value,
+          );
+      }
+    } catch (error:any) {
+      throw new BadRequestException(
+        `Error subiendo las imágenes: ${error.message}`,
+      );
+    }
+
+    const productData = {
+      ...validation.data,
+    };
+
+    const product = await this.productsService.createProduct(productData);
+
+    try {
+      if (imageResults.length > 0) {
+        if (product.id) {
+          await this.filesService.saveImages(imageResults, product.id);
+        } else {
+          throw new Error(
+            'El producto no se ha creado correctamente y no tiene un ID.',
+          );
+        }
+      }
+    } catch (error) {
+      throw new BadRequestException(
+        'Error guardando las imágenes en el producto.',
+      );
+    }
+
+    return product;
   }
 
   @Get()

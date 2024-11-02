@@ -86,13 +86,13 @@ export class ProductsRepository {
   }): Promise<Omit<ProductEntity, 'description' | 'categoryId'>[]> {
     const data = db.query.products.findMany({
       columns: {
-        imageUrl: true,
         name: true,
         price: true,
         stock: true,
         id: true,
         active: true,
         type: true,
+        imageUrl:true,
       },
       where: gte(products.id, cursor),
       limit: limit,

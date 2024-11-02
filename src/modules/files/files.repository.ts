@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { UploadApiResponse, v2 as cloudinary } from 'cloudinary';
 import { Readable } from 'stream';
-
+import { db } from '../../config/db';
 import {
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
   CLOUDINARY_CLOUD_NAME,
 } from '../../config/enviroments.config';
+import { files, InsertImage } from '../../../db/schemas/files.schema';
+
 @Injectable()
 export class FilesRepository {
   constructor() {
@@ -32,7 +34,6 @@ export class FilesRepository {
         },
       );
 
-      // Esto convierte el archivo a un buffer a un stream para poder subirlo a Cloudinary
       const stream = Readable.from(file.buffer);
       stream.pipe(upload);
     });
@@ -47,5 +48,9 @@ export class FilesRepository {
       throw new BadRequestException(`Can't delete 100 or more assets.`);
 
     return await cloudinary.api.delete_resources(publicsIds);
+  }
+
+  async createMultipleImages(imageData: InsertImage[]): Promise<void> {
+    await db.insert(files).values(imageData);
   }
 }
