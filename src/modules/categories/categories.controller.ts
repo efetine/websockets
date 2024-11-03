@@ -294,7 +294,7 @@ export class CategoriesController {
     },
   })
   @ApiOperation({ summary: 'Create Category' })
-  async create(@Body() body: InsertCategory): Promise<InsertCategory[]> {
+  async create(@Body() body: InsertCategory): Promise<InsertCategory> {
     const validation = insertCategorySchema.safeParse(body);
     if (!validation.success)
       throw new BadRequestException(validation.error.issues);
@@ -344,7 +344,7 @@ export class CategoriesController {
   async update(
     @Param('uuid', ParseUUIDPipe) id: string,
     @Body() body: Partial<InsertCategory>,
-  ): Promise<InsertCategory[]> {
+  ): Promise<InsertCategory> {
     return await this.categoriesService.update(id, body);
   }
 

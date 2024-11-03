@@ -16,14 +16,14 @@ export class CategoriesService {
     return await this.categoriesRepository.findOne(id);
   }
 
-  async create(newCategoryData: InsertCategory): Promise<InsertCategory[]> {
+  async create(newCategoryData: InsertCategory): Promise<InsertCategory> {
     return await this.categoriesRepository.create(newCategoryData);
   }
 
   async update(
     id: string,
     newCategoryData: Partial<InsertCategory>,
-  ): Promise<InsertCategory[]> {
+  ): Promise<InsertCategory> {
     return await this.categoriesRepository.update(id, newCategoryData);
   }
 

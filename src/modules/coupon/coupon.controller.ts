@@ -7,6 +7,8 @@ import {
   Delete,
   Patch,
   ParseUUIDPipe,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
 import { InsertCouponSchema } from '../../../db/schemas/coupon.schema';
@@ -17,6 +19,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { getCouponsSchema } from './dto/get-coupons.dto';
+import { PaginatedCouponsDto } from './dto/paginated-coupons.dto';
 
 @Controller('coupons')
 @ApiTags('Coupons')
@@ -55,8 +59,17 @@ export class CouponController {
       },
     },
   })
-  async getAllCoupons() {
-    return this.couponService.findAllCoupons();
+  async getAllCoupons(
+    @Query('cursor') cursor: string,
+    @Query('limit') limit: number,
+  ): Promise<PaginatedCouponsDto> {
+    const parsedInput = getCouponsSchema.safeParse({ cursor, limit });
+
+    if (parsedInput.success === false) {
+      throw new BadRequestException(parsedInput.error.issues);
+    }
+
+    return this.couponService.findAllCoupons(parsedInput.data);
   }
 
   @Post('create')

@@ -53,30 +53,31 @@ export class CategoriesRepository {
     return category;
   }
 
-  async create(newCategoryData: InsertCategory): Promise<InsertCategory[]> {
+  async create(newCategoryData: InsertCategory): Promise<InsertCategory> {
     const newCategory = await db
       .insert(categories)
       .values(newCategoryData)
       .returning();
+
     if (!newCategory) throw new BadRequestException('Error Creating Category');
 
-    return newCategory;
+    return newCategory[0];
   }
 
   async update(
     id: string,
     newCategoryData: Partial<InsertCategory>,
-  ): Promise<InsertCategory[]> {
+  ): Promise<InsertCategory> {
     const updatedCategory = await db
       .update(categories)
       .set(newCategoryData)
       .where(eq(categories.id, id))
       .returning({ id: categories.id, name: categories.name });
 
-    if (updatedCategory.length == 0)
+    if (updatedCategory.length === 0)
       throw new NotFoundException(`Category with uuid ${id} didn't exist.`);
 
-    return updatedCategory;
+    return updatedCategory[0];
   }
 
   async remove(id: string): Promise<{ message: string }> {

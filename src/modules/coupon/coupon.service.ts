@@ -1,15 +1,15 @@
-import {
-  Injectable,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CouponRepository } from './coupon.repository';
 import { CreateCouponDto } from '../../../db/schemas/coupon.schema';
+import type { GetCouponsDto } from './dto/get-coupons.dto';
+import { PaginatedCouponsDto } from './dto/paginated-coupons.dto';
 
 @Injectable()
 export class CouponService {
   constructor(private readonly couponRepository: CouponRepository) {}
 
-  async findAllCoupons() {
-    return await this.couponRepository.findAllCoupons();
+  async findAllCoupons(input: GetCouponsDto): Promise<PaginatedCouponsDto> {
+    return await this.couponRepository.findAllCoupons(input);
   }
 
   async createCoupon(couponData: CreateCouponDto) {

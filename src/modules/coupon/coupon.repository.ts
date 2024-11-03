@@ -5,13 +5,33 @@ import {
 } from '@nestjs/common';
 import { coupons, CreateCouponDto } from '../../../db/schemas/coupon.schema';
 import { db } from '../../config/db';
-import { eq } from 'drizzle-orm';
+import { eq, gte } from 'drizzle-orm';
+import { GetCouponsDto } from './dto/get-coupons.dto';
+import { PaginatedCouponsDto } from './dto/paginated-coupons.dto';
 
 @Injectable()
 export class CouponRepository {
-  async findAllCoupons(): Promise<CreateCouponDto[]> {
-    const couponsList = await db.select().from(coupons).execute();
-    return couponsList;
+  async findAllCoupons(input: GetCouponsDto): Promise<PaginatedCouponsDto> {
+    const { cursor, limit } = input;
+
+    const NEXT_CURSOR_ITEM = 1;
+    const selectedCoupons = await db
+      .select()
+      .from(coupons)
+      .where(cursor ? gte(coupons.id, cursor) : undefined)
+      .limit(limit + NEXT_CURSOR_ITEM);
+
+    let nextCursor: string | null = null;
+
+    if (selectedCoupons.length === limit + NEXT_CURSOR_ITEM) {
+      const next = selectedCoupons.pop();
+      nextCursor = next!.id;
+    }
+
+    return {
+      data: selectedCoupons,
+      nextCursor,
+    };
   }
   async createDiscountCoupon(
     couponData: CreateCouponDto,
