@@ -1,13 +1,10 @@
 import { boolean } from 'drizzle-orm/pg-core';
 import { text } from 'drizzle-orm/pg-core';
 import { primaryKey } from 'drizzle-orm/pg-core';
-import {
-  integer,
-  pgTable,
-  timestamp,
-} from 'drizzle-orm/pg-core';
+import { integer, pgTable, timestamp } from 'drizzle-orm/pg-core';
 
 import { users } from './users.schema';
+import { relations } from 'drizzle-orm';
 
 export const accounts = pgTable(
   'account',
@@ -33,6 +30,10 @@ export const accounts = pgTable(
   }),
 );
 
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, { fields: [accounts.userId], references: [users.id] }),
+}));
+
 export const sessions = pgTable('session', {
   sessionToken: text('sessionToken').primaryKey(),
   userId: text('userId')
@@ -40,6 +41,10 @@ export const sessions = pgTable('session', {
     .references(() => users.id, { onDelete: 'cascade' }),
   expires: timestamp('expires', { mode: 'date' }).notNull(),
 });
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, { fields: [sessions.userId], references: [users.id] }),
+}));
 
 export const verificationTokens = pgTable(
   'verificationToken',

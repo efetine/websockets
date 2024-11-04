@@ -1,12 +1,11 @@
 import { relations } from 'drizzle-orm';
-import { boolean } from 'drizzle-orm/pg-core';
 import { text } from 'drizzle-orm/pg-core';
 import { pgTable, timestamp } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { orders } from './orders.schema';
 import { pgEnum } from 'drizzle-orm/pg-core';
-import { products } from './products.schema';
+import { accounts } from './auth.schema';
 import { carts } from './cart.schema';
 
 export const pgStatusEnum = pgEnum('status_enum', [
@@ -45,6 +44,7 @@ export const users = pgTable('user', {
 export const userRelations = relations(users, ({ many, one }) => ({
   orders: many(orders),
   cart: one(carts, { fields: [users.id], references: [carts.userId] }),
+  accounts: many(accounts),
 }));
 
 export const insertUserSchema = createInsertSchema(users);
