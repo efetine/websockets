@@ -10,29 +10,35 @@ import {
   Patch,
   Post,
   Query,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { CartsService } from './carts.service';
 import { ApiTags } from '@nestjs/swagger';
 import { paginationByUserDto } from '../../schemas/pagination.dto';
 import { addProductToCartDto } from './dto/addProduct.dto';
 import { removeProductFromCartDto } from './dto/deleteProduct.dto';
+import { AuthGuard } from '../../guards/auth.guard';
 
 @ApiTags('Carts')
 @Controller('carts')
 export class CartsController {
   constructor(private readonly cartsService: CartsService) {}
 
+  @UseGuards(AuthGuard)
   @Get()
   async getCartByUserId(
     @Query('limit') limit: number,
     @Query('cursor') cursor: number,
-    @Query('userId') userId: string,
+    @Req()
+    request: Request & {
+      user: { id: string; email: string; iat: number; exp: number };
+    },
   ) {
-
     const validation = paginationByUserDto.safeParse({
       cursor,
       limit,
-      userId,
+      userId: request.user.id,
     });
 
     if (validation.success === false) {
@@ -42,20 +48,23 @@ export class CartsController {
     return await this.cartsService.getCartByUserId(validation.data);
   }
 
+  @UseGuards(AuthGuard)
   @Post()
-  async createOrAddCart(
-    @Query('user') userId: string,
+  async addProductInCart(
+    @Req()
+    req: Request & {
+      user: { id: string; email: string; iat: number; exp: number };
+    },
     @Query('product') productId: string,
-    @Query('quantity') quantity: string | number = 1
+    @Query('quantity') quantity: number,
   ) {
-
-    quantity = Number(quantity) || 1
+    quantity = Number(quantity) || 1;
 
     const validation = addProductToCartDto.safeParse({
-      userId,
+      userId: req.user.id,
       productId,
-      quantity
-    })
+      quantity,
+    });
 
     if (validation.success === false) {
       throw new BadRequestException(validation.error.issues);
@@ -64,13 +73,19 @@ export class CartsController {
     return await this.cartsService.addProduct(validation.data);
   }
 
+  @UseGuards(AuthGuard)
   @Delete()
-  async deleteProductCart(@Query('user') userId: string, @Query('product') productId: string) {
+  async deleteProductCart(
+    @Req()
+    req: Request & {
+      user: { id: string; email: string; iat: number; exp: number };
+    },
+    @Query('product') productId: string,
+  ) {
     const validation = removeProductFromCartDto.safeParse({
-      userId,
+      userId: req.user.id,
       productId,
     });
-
     if (validation.success === false) {
       throw new BadRequestException(validation.error.issues);
     }
@@ -78,20 +93,23 @@ export class CartsController {
     return await this.cartsService.removeProduct(validation.data);
   }
 
+  @UseGuards(AuthGuard)
   @Patch()
   async updateQuantity(
-    @Query('user') userId: string,
+    @Req()
+    req: Request & {
+      user: { id: string; email: string; iat: number; exp: number };
+    },
     @Query('product') productId: string,
-    @Query('quantity') quantity: string | number
+    @Query('quantity') quantity: string | number,
   ) {
-
-    quantity = Number(quantity) || 1
+    quantity = Number(quantity) || 1;
 
     const validation = addProductToCartDto.safeParse({
-      userId,
+      userId: req.user.id,
       productId,
-      quantity
-    })
+      quantity,
+    });
 
     if (validation.success === false) {
       throw new BadRequestException(validation.error.issues);

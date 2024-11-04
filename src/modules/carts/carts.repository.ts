@@ -8,7 +8,6 @@ import { carts } from '../../../db/schemas/cart.schema';
 import { eq, gte, sql } from 'drizzle-orm';
 import {
   cartAndProducts,
-  cartAndProductsRelations,
 } from '../../../db/schemas/cart_products.schema';
 import { PaginationByUserDto } from '../../schemas/pagination.dto';
 import { AddProductToCartDto } from './dto/addProduct.dto';
@@ -59,9 +58,9 @@ export class CartsRepository {
       productId: product.product?.id,
       category: product.product?.category.name,
       price: product.product?.price,
-      title: product.product?.price,
+      title: product.product?.name,
       image: product.product?.imageUrl,
-      quantity: product.quantity,
+      qty: product.quantity,
     }));
 
     if (!data)
