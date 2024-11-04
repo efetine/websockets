@@ -102,7 +102,6 @@ export class ProductsController {
     @Body() body: InsertProduct,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    // Conversión segura de price y stock a número
     const parsedBody = {
       ...body,
       price: Number(body.price),
@@ -115,7 +114,6 @@ export class ProductsController {
       );
     }
 
-    // Validación de los datos con Zod
     const validation = productInsertSchema.safeParse(parsedBody);
     if (!validation.success) {
       throw new BadRequestException(validation.error.issues);
@@ -125,30 +123,10 @@ export class ProductsController {
 
     try {
       if (files && files.length > 0) {
-        // Subida múltiple de imágenes y manejo de errores
-        const uploadResults =
-          await this.filesService.uploadMultipleImages(files);
+        imageResults = await this.filesService.uploadMultipleImages(files);
 
-        // Filtrar solo los resultados que fueron exitosos
-        imageResults = uploadResults
-          .filter(
-            (
-              result: PromiseSettledResult<{
-                public_id: string;
-                secure_url: string;
-              }>,
-            ) => result.status === 'fulfilled',
-          )
-          .map(
-            (
-              result: PromiseFulfilledResult<{
-                public_id: string;
-                secure_url: string;
-              }>,
-            ) => result.value,
-          );
       }
-    } catch (error:any) {
+    } catch (error: any) {
       throw new BadRequestException(
         `Error subiendo las imágenes: ${error.message}`,
       );

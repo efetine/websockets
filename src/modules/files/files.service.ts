@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FilesRepository } from './files.repository';
+import { ImageEntity, InsertImage } from '../../../db/schemas/files.schema';
 
 @Injectable()
 export class FilesService {
@@ -38,9 +39,16 @@ export class FilesService {
 
     // Filtrar archivos que fallaron y que se subieron correctamente
     const rejected = results.filter((result) => result.status === 'rejected');
-    const successful = results.filter(
-      (result) => result.status === 'fulfilled',
-    );
+    const successful = results
+      .filter(
+        (
+          result,
+        ): result is PromiseFulfilledResult<{
+          public_id: string;
+          secure_url: string;
+        }> => result.status === 'fulfilled',
+      )
+      .map((result) => result.value); // Extraer el value de los resultados exitosos
 
     // Loguear los archivos que no se pudieron subir
     if (rejected.length > 0) {
@@ -48,19 +56,31 @@ export class FilesService {
     }
 
     // Devolver los resultados de los que se subieron correctamente
-    return successful;
+    return successful; // Ahora es un array de objetos que contienen public_id y secure_url
   }
 
   async saveImages(
     files: { public_id: string; secure_url: string }[],
     productId: string,
   ) {
-    const imageData = files.map((image) => ({
-      productId,
+    const imageData: InsertImage[] = files.map((image) => ({
       publicId: image.public_id,
       secureUrl: image.secure_url,
+      productId: productId, // Asegúrate de incluir productId aquí
     }));
 
+    // Asegúrate de que la inserción está utilizando el esquema adecuado
     return this.filesRepository.createMultipleImages(imageData);
+  }
+
+  async getAllImages() {
+    return await this.filesRepository.findAllImages();
+  }
+  async findAllImagesByProductId(productId: string) {
+    return await this.filesRepository.findImagesByProductId(productId);
+  }
+
+  async deleteGalleryImage(publicId: string): Promise<{message: string}> {
+    return this.filesRepository.deleteImageByPublicId(publicId);
   }
 }

@@ -44,7 +44,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
@@ -101,7 +101,7 @@ export class MailService {
       attachments: [
         {
           filename: 'horizon.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
         {
@@ -158,7 +158,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
@@ -192,7 +192,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
@@ -228,7 +228,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
@@ -262,7 +262,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
@@ -295,7 +295,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
@@ -347,7 +347,7 @@ export class MailService {
       attachments: [
         {
           filename: 'logo.png',
-          path: 'C:/Users/Windows 10/Desktop/horizon.png',
+          path: 'https://res.cloudinary.com/dnfslkgiv/image/upload/v1730565786/dlin5sg99n8avumxxpal.jpg',
           cid: 'logo@gamevault',
         },
       ],
