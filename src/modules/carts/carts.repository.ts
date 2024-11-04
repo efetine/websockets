@@ -1,87 +1,134 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { db } from '../../config/db';
 import { carts } from '../../../db/schemas/cart.schema';
-import { and, eq } from 'drizzle-orm';
-import { cartAndProducts } from '../../../db/schemas/cart_products.schema';
-import { products } from '../../../db/schemas/products.schema';
+import { eq, gte, sql } from 'drizzle-orm';
+import {
+  cartAndProducts,
+  cartAndProductsRelations,
+} from '../../../db/schemas/cart_products.schema';
+import { PaginationByUserDto } from '../../schemas/pagination.dto';
+import { AddProductToCartDto } from './dto/addProduct.dto';
+import { RemoveProductFromCartDto } from './dto/deleteProduct.dto';
 
 @Injectable()
 export class CartsRepository {
-  async getCartByUserId(userId: string) {
-    const cart = await db.select().from(carts).where(eq(carts.userId, userId));
+  async getCartByUserId({ userId, limit, cursor }: PaginationByUserDto) {
+    if (!cursor) cursor = 0;
 
-    if (cart.length === 0)
-      throw new NotFoundException(
-        `User with ${userId} didn't exist or cart of the user didn't exist.`,
-      );
-
-    const productsInCart = db
-      .select()
-      .from(cartAndProducts)
-      .innerJoin(products, eq(cartAndProducts.productId, products.id))
-      .where(eq(cartAndProducts.cartId, cart[0].id));
-
-    return {
-      cart: cart[0],
-      products: (await productsInCart).map((row) => row.products),
-    };
-  }
-
-  async createOrAddCart(userId: string, product: string) {
-    const existingCart = await db
-      .select()
-      .from(carts)
-      .where(eq(carts.userId, userId));
-
-    if (existingCart.length === 0)
-      throw new NotFoundException(`User with ${userId} uuid didn't exist.`);
-
-    let cartId;
-
-    if (existingCart.length === 0) {
-      const newCart = await db
-        .insert(carts)
-        .values({ userId })
-        .returning({ id: carts.id });
-
-      cartId = Number(newCart[0].id);
-    } else {
-      cartId = Number(existingCart[0].id);
-    }
-
-    await db.insert(cartAndProducts).values({
-      cartId: Number(cartId),
-      productId: product,
+    const productsCart = await db.query.carts.findFirst({
+      where: eq(carts.userId, userId),
+      columns: {
+        userId: false,
+        id: false,
+      },
+      with: {
+        products: {
+          where: gte(cartAndProducts.id, cursor),
+          with: {
+            product: {
+              with: {
+                category: true,
+              },
+            },
+          },
+          columns: {
+            productId: false,
+            cartId: false,
+          },
+          limit: limit + 1,
+        },
+      },
     });
 
-    return { message: 'Product added.' };
-  }
-
-  async removeProduct(userId: string, product: string) {
-    const userCart = await db
-      .select()
-      .from(carts)
-      .where(eq(carts.userId, userId));
-
-    if (userCart.length === 0)
+    if (!productsCart?.products)
       throw new NotFoundException(
         `Cart with ${userId} user uuid didn't exist.`,
       );
 
-    const cartId = userCart[0].id;
+    let nextCursor: number | null = null;
 
+    if (productsCart?.products?.length > limit) {
+      nextCursor = productsCart?.products?.pop()!.id;
+    }
+
+    const data = productsCart?.products?.map((product) => ({
+      productId: product.product?.id,
+      category: product.product?.category.name,
+      price: product.product?.price,
+      title: product.product?.price,
+      image: product.product?.imageUrl,
+      quantity: product.quantity,
+    }));
+
+    if (!data)
+      return {
+        data: [],
+        nextCursor,
+      };
+
+    return {
+      data: data,
+      nextCursor,
+    };
+  }
+
+  async addProduct({ productId, quantity, userId }: AddProductToCartDto) {
     const result = await db
-      .delete(cartAndProducts)
-      .where(
-        and(
-          eq(cartAndProducts.cartId, cartId),
-          eq(cartAndProducts.productId, product),
-        ),
+      .execute(
+        sql`
+  INSERT INTO cart_products (cart_id, product_id, quantity)
+  SELECT 
+    (SELECT id FROM carts WHERE user_id = ${userId}),
+    ${productId},
+    ${quantity}
+  WHERE ${quantity} <= (SELECT stock FROM products WHERE id = ${productId})
+`,
+      )
+      .catch((error) => {
+        throw new BadRequestException(error.details);
+      });
+
+    if (result.rowCount == 0)
+      throw new NotFoundException(
+        `Product with ${productId} id didn't have stock enough`,
       );
 
-    if (result.rowCount === 0)
-      throw new NotFoundException(`Product with ${product} id didn't exist.`);
-
-    return { message: 'Product removed.' };
+    return result;
   }
+
+  async removeProduct({ productId, userId }: RemoveProductFromCartDto) {
+    const result = await db.execute(sql`
+  DELETE FROM cart_products
+  WHERE cart_id = (SELECT id FROM carts WHERE user_id = ${userId})
+    AND product_id = ${productId};
+`);
+
+    if (result.rowCount == 0)
+      throw new NotFoundException(
+        `Product with ${productId} id didn't exist in cart`,
+      );
+
+    return { message: 'product deleted succesfuly' };
+  }
+
+  async updateQuantity({ productId, quantity, userId }: AddProductToCartDto){
+    const result = await db.execute(sql`
+  UPDATE cart_products
+  SET quantity = ${quantity}
+  WHERE cart_id = (SELECT id FROM carts WHERE user_id = ${userId})
+    AND product_id = ${productId}
+    AND ${quantity} <= (SELECT stock FROM products WHERE id = ${productId});
+`);
+
+    if (result.rowCount == 0)
+      throw new NotFoundException(
+        `Product with ${productId} id didn't exist in cart or didn't have stock enough`,
+      );
+
+    return { message: 'product updated succesfuly' };
+  };
 }

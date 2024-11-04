@@ -1,41 +1,103 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
+  Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { CartsService } from './carts.service';
-import { CreateOrAddCartDto } from './dto/createoraddcart.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { paginationByUserDto } from '../../schemas/pagination.dto';
+import { addProductToCartDto } from './dto/addProduct.dto';
+import { removeProductFromCartDto } from './dto/deleteProduct.dto';
 
 @ApiTags('Carts')
 @Controller('carts')
 export class CartsController {
   constructor(private readonly cartsService: CartsService) {}
 
-  @Get(':uuid')
-  async getCartByUserId(@Param('uuid', ParseUUIDPipe) userId: string) {
-    return await this.cartsService.getCartByUserId(userId);
+  @Get()
+  async getCartByUserId(
+    @Query('limit') limit: number,
+    @Query('cursor') cursor: number,
+    @Query('userId') userId: string,
+  ) {
+
+    const validation = paginationByUserDto.safeParse({
+      cursor,
+      limit,
+      userId,
+    });
+
+    if (validation.success === false) {
+      throw new BadRequestException(validation.error.issues);
+    }
+
+    return await this.cartsService.getCartByUserId(validation.data);
   }
 
-  @Post(':uuid')
+  @Post()
   async createOrAddCart(
-    @Param('uuid', ParseUUIDPipe) userId: string,
-    @Body() body: CreateOrAddCartDto,
+    @Query('user') userId: string,
+    @Query('product') productId: string,
+    @Query('quantity') quantity: string | number = 1
   ) {
-    const { product } = body;
-    return await this.cartsService.createOrAddCart(userId, product);
+
+    quantity = Number(quantity) || 1
+
+    const validation = addProductToCartDto.safeParse({
+      userId,
+      productId,
+      quantity
+    })
+
+    if (validation.success === false) {
+      throw new BadRequestException(validation.error.issues);
+    }
+
+    return await this.cartsService.addProduct(validation.data);
   }
 
-  @Delete(':uuid')
-  async removeProduct(
-    @Param('uuid', ParseUUIDPipe) userId: string,
-    @Body() body: CreateOrAddCartDto,
+  @Delete()
+  async deleteProductCart(@Query('user') userId: string, @Query('product') productId: string) {
+    const validation = removeProductFromCartDto.safeParse({
+      userId,
+      productId,
+    });
+
+    if (validation.success === false) {
+      throw new BadRequestException(validation.error.issues);
+    }
+
+    return await this.cartsService.removeProduct(validation.data);
+  }
+
+  @Patch()
+  async updateQuantity(
+    @Query('user') userId: string,
+    @Query('product') productId: string,
+    @Query('quantity') quantity: string | number
   ) {
-    const { product } = body;
-    return await this.cartsService.removeProduct(userId, product);
+
+    quantity = Number(quantity) || 1
+
+    const validation = addProductToCartDto.safeParse({
+      userId,
+      productId,
+      quantity
+    })
+
+    if (validation.success === false) {
+      throw new BadRequestException(validation.error.issues);
+    }
+
+    return await this.cartsService.updateQuantity(validation.data);
   }
 }
+

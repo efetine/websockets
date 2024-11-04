@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { orders } from './orders.schema';
 import { pgEnum } from 'drizzle-orm/pg-core';
 import { products } from './products.schema';
+import { carts } from './cart.schema';
 
 export const pgStatusEnum = pgEnum('status_enum', [
   'active',
@@ -41,8 +42,9 @@ export const users = pgTable('user', {
   bannedReason: text('bannedReason'),
 });
 
-export const userRelations = relations(users, ({ many }) => ({
+export const userRelations = relations(users, ({ many, one }) => ({
   orders: many(orders),
+  cart: one(carts, { fields: [users.id], references: [carts.userId] }),
 }));
 
 export const insertUserSchema = createInsertSchema(users);

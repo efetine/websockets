@@ -10,7 +10,8 @@ export const carts = pgTable('carts', {
     .references(() => users.id)
     .notNull()
     .unique(),
-});
+},
+);
 
 export const cartRelations = relations(carts, ({ many, one }) => ({
   user: one(users, { fields: [carts.userId], references: [users.id] }),
