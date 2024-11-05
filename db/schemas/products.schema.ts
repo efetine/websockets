@@ -55,3 +55,14 @@ export const insertProductSchema = createInsertSchema(products);
 export const selectProductSchema = createSelectSchema(products);
 export type ProductEntity = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+export const productWithCategorySchema = selectProductSchema
+  .omit({ categoryId: true })
+  .extend({
+    category: z.object({
+      id: z.string(),
+      name: z.string(),
+    }),
+  });
+
+export type ProductWithCategory = z.infer<typeof productWithCategorySchema>;

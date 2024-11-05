@@ -9,9 +9,10 @@ import { ProductsService } from '../products/products.service';
 import { ProductsModule } from '../products/products.module';
 import { CouponService } from '../coupon/coupon.service';
 import { CouponRepository } from '../coupon/coupon.repository';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [UsersModule, ProductsModule],
+  imports: [UsersModule, ProductsModule, MailModule],
   controllers: [MercadopagoController],
   providers: [
     MercadopagoService,

@@ -34,8 +34,6 @@ export class CategoriesRepository {
         selectedCategories.pop();
       }
 
-      console.log({ selectedCategories, nextCursor });
-
       return { data: selectedCategories, nextCursor };
     } catch {
       throw new InternalServerErrorException('Error fetching Categories');

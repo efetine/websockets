@@ -35,6 +35,7 @@ import { RemoveOneImageDto } from './dto/remove.dto';
 import { typeEnum } from './dto/type.enum';
 import { getProductsSchema } from './dto/get-products.dto';
 import { FilesService } from '../files/files.service';
+import type { PaginatedProductsDto } from './dto/paginated-products.dto';
 
 @Controller('products')
 @ApiTags('Products')
@@ -124,7 +125,6 @@ export class ProductsController {
     try {
       if (files && files.length > 0) {
         imageResults = await this.filesService.uploadMultipleImages(files);
-
       }
     } catch (error: any) {
       throw new BadRequestException(
@@ -254,7 +254,7 @@ export class ProductsController {
     @Query('limit') limit: number,
     @Query('type') typeProduct: typeEnum,
     @Query('search') search: string,
-  ) {
+  ): Promise<PaginatedProductsDto> {
     const validation = getProductsSchema.safeParse({
       cursor,
       limit,
@@ -426,7 +426,7 @@ export class ProductsController {
     return await this.productsService.findOne(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiBody({
     description: 'Request body for updating a User',
     required: true,

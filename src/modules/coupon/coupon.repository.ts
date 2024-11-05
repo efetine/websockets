@@ -1,54 +1,46 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
-import { coupons, CreateCouponDto } from '../../../db/schemas/coupon.schema';
+
+import {
+  coupons,
+  type CreateCouponDto,
+} from '../../../db/schemas/coupon.schema';
 import { db } from '../../config/db';
 import { eq, gte } from 'drizzle-orm';
-import { GetCouponsDto } from './dto/get-coupons.dto';
-import { PaginatedCouponsDto } from './dto/paginated-coupons.dto';
+import type { GenerateCouponsDto } from './dto/generate-coupons-dto';
+import type { GetCouponsDto } from './dto/get-coupons-dto';
+import type { PaginatedCouponsDto } from './dto/paginated-coupons-dto';
 
 @Injectable()
 export class CouponRepository {
-  async findAllCoupons(input: GetCouponsDto): Promise<PaginatedCouponsDto> {
-    const { cursor, limit } = input;
-
-    const NEXT_CURSOR_ITEM = 1;
-    const selectedCoupons = await db
-      .select()
-      .from(coupons)
-      .where(cursor ? gte(coupons.id, cursor) : undefined)
-      .limit(limit + NEXT_CURSOR_ITEM);
-
-    let nextCursor: string | null = null;
-
-    if (selectedCoupons.length === limit + NEXT_CURSOR_ITEM) {
-      const next = selectedCoupons.pop();
-      nextCursor = next!.id;
-    }
-
-    return {
-      data: selectedCoupons,
-      nextCursor,
-    };
-  }
-  async createDiscountCoupon(
-    couponData: CreateCouponDto,
-  ): Promise<CreateCouponDto[]> {
+  async findAllCoupons({
+    cursor,
+    limit,
+  }: GetCouponsDto): Promise<PaginatedCouponsDto> {
     try {
-      const coupon = await db
-        .insert(coupons)
-        .values(couponData)
-        .returning()
-        .execute();
+      const limitWithExtra = limit + 1;
 
-      if (!coupon) {
-        throw new BadRequestException('Error creating coupon');
+      const selectedCategories = await db
+        .select()
+        .from(coupons)
+        .where(cursor ? gte(coupons.id, cursor) : undefined)
+        .limit(limitWithExtra)
+        .orderBy(coupons.id);
+
+      let nextCursor: string | null = null;
+
+      if (selectedCategories.length === limitWithExtra) {
+        nextCursor = selectedCategories[selectedCategories.length - 1].id;
+        selectedCategories.pop();
       }
-      return coupon;
-    } catch (error) {
-      throw new BadRequestException('Error creating coupon');
+
+      return { data: selectedCategories, nextCursor };
+    } catch {
+      throw new InternalServerErrorException('Error fetching Categories');
     }
   }
 
@@ -181,5 +173,17 @@ export class CouponRepository {
 
     const statusMessage = newStatus ? 'activated' : 'deactivated';
     return { message: `Coupon has been ${statusMessage}` };
+  }
+
+  async generateCoupons(input: GenerateCouponsDto): Promise<CreateCouponDto[]> {
+    const newCoupons = Array.from({ length: input.quantity }).map(() => ({
+      couponCode: Math.random().toString(36).substring(2, 15),
+      discountPercentage: input.discountPercentage,
+      expirationDate: input.expirationDate,
+    }));
+
+    const couponsList = await db.insert(coupons).values(newCoupons).returning();
+
+    return couponsList;
   }
 }

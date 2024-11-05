@@ -3,17 +3,18 @@ import { CouponRepository } from './coupon.repository';
 import { CreateCouponDto } from '../../../db/schemas/coupon.schema';
 import type { GetCouponsDto } from './dto/get-coupons.dto';
 import { PaginatedCouponsDto } from './dto/paginated-coupons.dto';
+import { SendCouponsDto } from './dto/send-coupons-dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class CouponService {
-  constructor(private readonly couponRepository: CouponRepository) {}
+  constructor(
+    private readonly couponRepository: CouponRepository,
+    private readonly mailService: MailService,
+  ) {}
 
-  async findAllCoupons(input: GetCouponsDto): Promise<PaginatedCouponsDto> {
+  async findAllCoupons(input: GetCouponsDto) {
     return await this.couponRepository.findAllCoupons(input);
-  }
-
-  async createCoupon(couponData: CreateCouponDto) {
-    return await this.couponRepository.createDiscountCoupon(couponData);
   }
 
   async validateCoupon(id: string) {
@@ -48,5 +49,26 @@ export class CouponService {
     const coupon = await this.couponRepository.findOneById(id);
     const newStatus = !coupon.isActive;
     return this.couponRepository.changeActive(id);
+  }
+
+  async sendCoupons(input: SendCouponsDto) {
+    const coupons = await this.couponRepository.generateCoupons({
+      quantity: input.emails.length,
+      discountPercentage: input.coupon.discountPercentage,
+      expirationDate: input.coupon.expirationDate,
+    });
+
+    for await (const email of input.emails) {
+      const coupon = coupons.pop();
+
+      if (coupon !== undefined) {
+        await this.mailService.sendCouponMail(
+          {
+            email,
+          },
+          coupon,
+        );
+      }
+    }
   }
 }

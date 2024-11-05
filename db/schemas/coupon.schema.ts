@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  serial,
-  varchar,
-  boolean,
-  integer,
-  date,
-} from 'drizzle-orm/pg-core';
+import { pgTable, varchar, boolean, integer, date } from 'drizzle-orm/pg-core';
 import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
 import z from 'zod';
 
@@ -26,11 +19,11 @@ export const insertCouponSchema = createInsertSchema(coupons, {
   discountPercentage: (schema) => schema.discountPercentage,
   isActive: (schema) => schema.isActive,
 });
-export type InsertCouponSchema = z.infer<typeof insertCouponSchema>;
-
-export const selectCouponSchema = createSelectSchema(coupons);
 
 export type SelectCouponSchema = z.infer<typeof selectCouponSchema>;
 
-export type CreateCouponDto = typeof coupons.$inferInsert;
-export type CouponEntity = typeof coupons.$inferSelect;
+export type CreateCouponDto = z.infer<typeof insertCouponSchema>;
+
+export const selectCouponSchema = createSelectSchema(coupons);
+
+export type CouponEntity = z.infer<typeof selectCouponSchema>;

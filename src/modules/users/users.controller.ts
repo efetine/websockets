@@ -4,10 +4,8 @@ import {
   Body,
   Param,
   Delete,
-  ParseIntPipe,
   Query,
   ParseUUIDPipe,
-  Put,
   UseInterceptors,
   UploadedFile,
   ParseFilePipe,
@@ -159,7 +157,7 @@ export class UsersController {
     return await this.usersService.findOneBy(id);
   }
 
-  @Put(':id')
+  @Patch(':id')
   @ApiBody({
     description: 'Request body for updating a User',
     required: true,

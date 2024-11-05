@@ -12,6 +12,7 @@ import {
 import { eq, and, gte, inArray, gt, sql, asc, ilike } from 'drizzle-orm';
 import { FilesService } from '../files/files.service';
 import type { GetProductsDto } from './dto/get-products.dto';
+import type { PaginatedProductsDto } from './dto/paginated-products.dto';
 
 @Injectable()
 export class ProductsRepository {
@@ -22,10 +23,7 @@ export class ProductsRepository {
     cursor,
     search,
     type,
-  }: GetProductsDto): Promise<{
-    data: Omit<ProductEntity, 'categoryId'>[];
-    nextCursor: string | null;
-  }> {
+  }: GetProductsDto): Promise<PaginatedProductsDto> {
     const where = [gte(products.stock, 1), eq(products.active, 'active')];
 
     if (type !== undefined) {
@@ -92,7 +90,7 @@ export class ProductsRepository {
         id: true,
         active: true,
         type: true,
-        imageUrl:true,
+        imageUrl: true,
       },
       where: gte(products.id, cursor),
       limit: limit,

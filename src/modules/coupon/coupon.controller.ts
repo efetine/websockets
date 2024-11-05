@@ -11,23 +11,21 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { CouponService } from './coupon.service';
-import { InsertCouponSchema } from '../../../db/schemas/coupon.schema';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SendCouponsDto, sendCouponsSchema } from './dto/send-coupons-dto';
+import type { PaginatedCouponsDto } from './dto/paginated-coupons-dto';
+import { getCouponsSchema } from './dto/get-coupons-dto';
 import {
-  ApiBadRequestResponse,
-  ApiBody,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { getCouponsSchema } from './dto/get-coupons.dto';
-import { PaginatedCouponsDto } from './dto/paginated-coupons.dto';
+  UpdateCouponStatusDto,
+  updateCouponStatusSchema,
+} from './dto/update-coupon-status-dto';
 
 @Controller('coupons')
 @ApiTags('Coupons')
 export class CouponController {
   constructor(private readonly couponService: CouponService) {}
 
-  @Get('all')
+  @Get()
   @ApiOperation({ summary: 'Get all coupons' })
   @ApiResponse({
     status: 200,
@@ -63,61 +61,24 @@ export class CouponController {
     @Query('cursor') cursor: string,
     @Query('limit') limit: number,
   ): Promise<PaginatedCouponsDto> {
-    const parsedInput = getCouponsSchema.safeParse({ cursor, limit });
+    const input = getCouponsSchema.safeParse({ cursor, limit });
 
-    if (parsedInput.success === false) {
-      throw new BadRequestException(parsedInput.error.issues);
+    if (!input.success) {
+      throw new BadRequestException(input.error.errors);
     }
 
-    return this.couponService.findAllCoupons(parsedInput.data);
+    return this.couponService.findAllCoupons(input.data);
   }
 
-  @Post('create')
-  @ApiOperation({ summary: 'Create a new coupon' })
-  @ApiBody({
-    description: 'Request body for creating a coupon',
-    required: true,
-    examples: {
-      example1: {
-        summary: 'Create Coupon Example',
-        value: {
-          couponCode: 'SAVE10',
-          discountPercentage: 10,
-          expirationDate: '2024-11-30',
-          isActive: true,
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 201,
-    description: 'Coupon created successfully',
-    content: {
-      'application/json': {
-        example: {
-          id: '1234-5678-abcd-efgh',
-          couponCode: 'SAVE10',
-          discountPercentage: 10,
-          expirationDate: '2024-11-30',
-          isActive: true,
-        },
-      },
-    },
-  })
-  @ApiBadRequestResponse({
-    description: 'Validation error',
-    content: {
-      'application/json': {
-        example: {
-          message: 'Error creating coupon',
-          statusCode: 400,
-          error: 'Bad Request',
-        },
-      },
-    },
-  })
-  async create(@Body() couponData: InsertCouponSchema) {
-    return this.couponService.createCoupon(couponData);
+  @Post()
+  async sendCoupons(@Body() sendCouponsDto: SendCouponsDto) {
+    const input = sendCouponsSchema.safeParse(sendCouponsDto);
+
+    if (!input.success) {
+      throw new BadRequestException(input.error.errors);
+    }
+
+    return this.couponService.sendCoupons(input.data);
   }
 
   @Get('validate/:id')
@@ -260,9 +221,15 @@ export class CouponController {
   })
   async changeCouponStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() isAdmin: boolean,
+    @Body() body: UpdateCouponStatusDto,
   ) {
-    return this.couponService.changeStatus(id, isAdmin);
+    const validation = updateCouponStatusSchema.safeParse(body);
+
+    if (!validation.success) {
+      throw new BadRequestException(validation.error.errors);
+    }
+
+    return this.couponService.changeStatus(id, validation.data.isActive);
   }
 
   @Get('code/:couponCode')
