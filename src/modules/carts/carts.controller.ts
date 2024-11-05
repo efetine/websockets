@@ -19,6 +19,7 @@ import { paginationByUserDto } from '../../schemas/pagination.dto';
 import { addProductToCartDto } from './dto/addProduct.dto';
 import { removeProductFromCartDto } from './dto/deleteProduct.dto';
 import { AuthGuard } from '../../guards/auth.guard';
+import { mixedLocalStorageDto } from './dto/mixedLocalStorage.dto';
 
 @ApiTags('Carts')
 @Controller('carts')
@@ -74,6 +75,27 @@ export class CartsController {
   }
 
   @UseGuards(AuthGuard)
+  @Post('mixed')
+  mixedLocalStorage(
+    @Req()
+    req: Request & {
+      user: { id: string; email: string; iat: number; exp: number };
+    },
+    @Body() products: object,
+  ) {
+    const userId = req.user.id;
+
+    const validation = mixedLocalStorageDto.safeParse({
+      products,
+      userId,
+    });
+    if (validation.success === false) {
+      throw new BadRequestException(validation.error.issues);
+    }
+    return this.cartsService.mixedLocalStorage(validation.data);
+  }
+
+  @UseGuards(AuthGuard)
   @Delete()
   async deleteProductCart(
     @Req()
@@ -118,4 +140,3 @@ export class CartsController {
     return await this.cartsService.updateQuantity(validation.data);
   }
 }
-

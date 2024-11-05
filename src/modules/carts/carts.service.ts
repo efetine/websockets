@@ -3,6 +3,7 @@ import { CartsRepository } from './carts.repository';
 import { PaginationByUserDto, PaginationByUserStringCursorDto } from '../../schemas/pagination.dto';
 import { AddProductToCartDto } from './dto/addProduct.dto';
 import { RemoveProductFromCartDto } from './dto/deleteProduct.dto';
+import { MixedLocalStorageDto } from './dto/mixedLocalStorage.dto';
 
 @Injectable()
 export class CartsService {
@@ -14,6 +15,10 @@ export class CartsService {
 
   async addProduct(addProductToCartDto: AddProductToCartDto) {
     return await this.cartsRepository.addProduct(addProductToCartDto);
+  }
+
+  async mixedLocalStorage(mixedLocalStorageDto: MixedLocalStorageDto){
+    return await this.cartsRepository.mixedLocalStorage(mixedLocalStorageDto)
   }
 
   async removeProduct(removeProductFromCartDto: RemoveProductFromCartDto) {

@@ -6,12 +6,11 @@ import {
 import { db } from '../../config/db';
 import { carts } from '../../../db/schemas/cart.schema';
 import { eq, gte, sql } from 'drizzle-orm';
-import {
-  cartAndProducts,
-} from '../../../db/schemas/cart_products.schema';
+import { cartAndProducts } from '../../../db/schemas/cart_products.schema';
 import { PaginationByUserDto } from '../../schemas/pagination.dto';
 import { AddProductToCartDto } from './dto/addProduct.dto';
 import { RemoveProductFromCartDto } from './dto/deleteProduct.dto';
+import { MixedLocalStorageDto } from './dto/mixedLocalStorage.dto';
 
 @Injectable()
 export class CartsRepository {
@@ -99,6 +98,80 @@ export class CartsRepository {
     return result;
   }
 
+  async mixedLocalStorage({ products, userId }: MixedLocalStorageDto) {
+    const cart = await db.query.carts.findFirst({
+      where: eq(carts.userId, userId),
+      with: {
+        products: {
+          with: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!cart)
+      throw new NotFoundException(
+        `Cart with ${userId} user uuid didn't exist.`,
+      )
+
+    const productsInCart = products
+      .filter((product) =>
+        cart.products.find(
+          (cartProduct) => cartProduct.productId == product.id,
+        ),
+      )
+      ?.map((product) => {
+        const productInCart = cart.products.find(
+          (productCart) => productCart.productId === product.id,
+        );
+
+        if (productInCart) {
+          product.quantity += productInCart.quantity;
+          productInCart?.product?.stock < product.quantity &&
+            (product.quantity = productInCart?.product.stock);
+        }
+        return product;
+      })
+
+    const productsNotInCart = products.filter(
+      (product) =>
+        !cart.products.find(
+          (productCart) => productCart.productId === product.id,
+        ),
+    );
+
+    productsNotInCart?.length != 0 &&
+      (await db
+        .insert(cartAndProducts)
+        .values(
+          productsNotInCart.map((product) => ({
+            cartId: cart.id,
+            productId: product.id,
+            quantity: product.quantity,
+          })),
+        )
+        .returning({
+          productId: cartAndProducts.productId,
+          quantity: cartAndProducts.quantity,
+        }));
+
+    if (productsInCart?.length > 0) {
+      const updatePromises = productsInCart.map(async (product) =>{
+        await db
+          .update(cartAndProducts)
+          .set({
+            quantity: product.quantity,
+          })
+          .where(eq(cartAndProducts.productId, product.id))}
+      );
+
+      await Promise.all(updatePromises);
+    }
+
+    return { message: 'products added succesfuly' }
+  }
+
   async removeProduct({ productId, userId }: RemoveProductFromCartDto) {
     const result = await db.execute(sql`
   DELETE FROM cart_products
@@ -114,7 +187,7 @@ export class CartsRepository {
     return { message: 'product deleted succesfuly' };
   }
 
-  async updateQuantity({ productId, quantity, userId }: AddProductToCartDto){
+  async updateQuantity({ productId, quantity, userId }: AddProductToCartDto) {
     const result = await db.execute(sql`
   UPDATE cart_products
   SET quantity = ${quantity}
@@ -129,5 +202,5 @@ export class CartsRepository {
       );
 
     return { message: 'product updated succesfuly' };
-  };
+  }
 }
