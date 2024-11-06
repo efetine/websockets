@@ -252,13 +252,13 @@ export class ProductsController {
   async findAll(
     @Query('cursor') cursor: string,
     @Query('limit') limit: number,
-    @Query('type') typeProduct: typeEnum,
+    @Query('type') type: typeEnum,
     @Query('search') search: string,
   ): Promise<PaginatedProductsDto> {
     const validation = getProductsSchema.safeParse({
       cursor,
       limit,
-      typeProduct,
+      type,
       search,
     });
 
