@@ -9,7 +9,9 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway()
+const PORT = Number(process.env.PORT) || 443;
+
+@WebSocketGateway(PORT)
 export class WebsocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
