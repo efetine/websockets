@@ -5,7 +5,7 @@ import {
   pgTable,
   varchar,
   boolean,
-  text
+  text,
 } from 'drizzle-orm/pg-core';
 import { users } from './users.schema';
 import { products } from './products.schema';
@@ -18,6 +18,13 @@ export const orderStatusEnum = pgEnum('order_status', [
   'refound',
 ]);
 
+export const shippingStatusEnum = pgEnum('shipping_status', [
+  'none',
+  'pending',
+  'shipped',
+  'delivered',
+]);
+
 export const orders = pgTable('orders', {
   id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
   mpOrderId: varchar('mp_order_id', { length: 256 }).unique(),
@@ -28,7 +35,9 @@ export const orders = pgTable('orders', {
   createdAt: varchar('created_at', { length: 256 }).default(
     new Date().toISOString(),
   ),
-  discountPercentage:integer("discount_percentage").default(0)
+  discountPercentage: integer('discount_percentage').default(0),
+  shippingStatus: shippingStatusEnum('shipping_status').default('none'),
+  shippingAddress: text('shipping_address'),
 });
 
 export type insertOrders = typeof orders.$inferInsert;
@@ -51,10 +60,16 @@ export const ordersDetails = pgTable('orders_details', {
   price: integer('price'),
 });
 
-export const ordersDetailsRelations = relations(ordersDetails,({one}) => ({
-  order: one(orders, {fields:[ordersDetails.orderId], references:[orders.id]}),
-  product: one(products, {fields:[ordersDetails.productId], references:[products.id]}),
-}))
+export const ordersDetailsRelations = relations(ordersDetails, ({ one }) => ({
+  order: one(orders, {
+    fields: [ordersDetails.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [ordersDetails.productId],
+    references: [products.id],
+  }),
+}));
 
 export type insertOrdersDetails = typeof ordersDetails.$inferInsert;
 export type selectOrdersDetails = typeof ordersDetails.$inferSelect;
