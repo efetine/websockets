@@ -28,4 +28,7 @@ export class CartsService {
   async updateQuantity(addProductToCartDto: AddProductToCartDto) {
     return await this.cartsRepository.updateQuantity(addProductToCartDto);
   }
+  async deleteCart(userId: string) {
+    return await this.cartsRepository.deleteCart(userId);
+  }
 }

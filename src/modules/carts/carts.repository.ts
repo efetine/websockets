@@ -78,12 +78,21 @@ export class CartsRepository {
     const result = await db
       .execute(
         sql`
-  INSERT INTO cart_products (cart_id, product_id, quantity)
-  SELECT 
-    (SELECT id FROM carts WHERE user_id = ${userId}),
+WITH cart AS (
+    INSERT INTO carts (user_id)
+    VALUES (${userId})
+    ON CONFLICT (user_id) DO NOTHING
+    RETURNING id
+),
+existing_cart AS (
+    SELECT id FROM carts WHERE user_id = ${userId}
+)
+INSERT INTO cart_products (cart_id, product_id, quantity)
+SELECT 
+    COALESCE((SELECT id FROM cart), (SELECT id FROM existing_cart)),
     ${productId},
     ${quantity}
-  WHERE ${quantity} <= (SELECT stock FROM products WHERE id = ${productId})
+WHERE ${quantity} <= (SELECT stock FROM products WHERE id = ${productId});
 `,
       )
       .catch((error) => {
@@ -99,7 +108,12 @@ export class CartsRepository {
   }
 
   async mixedLocalStorage({ products, userId }: MixedLocalStorageDto) {
-    const cart = await db.query.carts.findFirst({
+    await db.execute(sql`
+  INSERT INTO carts (user_id)
+  SELECT ${userId}
+  WHERE NOT EXISTS (SELECT 1 FROM carts WHERE user_id = ${userId});
+  `);
+    let cart = await db.query.carts.findFirst({
       where: eq(carts.userId, userId),
       with: {
         products: {
@@ -110,19 +124,14 @@ export class CartsRepository {
       },
     });
 
-    if (!cart)
-      throw new NotFoundException(
-        `Cart with ${userId} user uuid didn't exist.`,
-      )
-
     const productsInCart = products
       .filter((product) =>
-        cart.products.find(
+        cart?.products?.find(
           (cartProduct) => cartProduct.productId == product.productId,
         ),
       )
       ?.map((product) => {
-        const productInCart = cart.products.find(
+        const productInCart = cart?.products?.find(
           (productCart) => productCart.productId === product.productId,
         );
 
@@ -132,11 +141,11 @@ export class CartsRepository {
             (product.qty = productInCart?.product.stock);
         }
         return product;
-      })
+      });
 
     const productsNotInCart = products.filter(
       (product) =>
-        !cart.products.find(
+        !cart?.products.find(
           (productCart) => productCart.productId === product.productId,
         ),
     );
@@ -146,7 +155,7 @@ export class CartsRepository {
         .insert(cartAndProducts)
         .values(
           productsNotInCart.map((product) => ({
-            cartId: cart.id,
+            cartId: cart?.id as number,
             productId: product.productId,
             quantity: product.qty,
           })),
@@ -157,19 +166,19 @@ export class CartsRepository {
         }));
 
     if (productsInCart?.length > 0) {
-      const updatePromises = productsInCart.map(async (product) =>{
+      const updatePromises = productsInCart.map(async (product) => {
         await db
           .update(cartAndProducts)
           .set({
             quantity: product.qty,
           })
-          .where(eq(cartAndProducts.productId, product.productId))}
-      );
+          .where(eq(cartAndProducts.productId, product.productId));
+      });
 
       await Promise.all(updatePromises);
     }
 
-    return { message: 'products added succesfuly' }
+    return { message: 'products added succesfuly' };
   }
 
   async removeProduct({ productId, userId }: RemoveProductFromCartDto) {
@@ -202,5 +211,14 @@ export class CartsRepository {
       );
 
     return { message: 'product updated succesfuly' };
+  }
+
+  async deleteCart(userId: string) {
+    const result = await db.execute(sql`
+  DELETE FROM carts
+  WHERE user_id = ${userId};
+`);
+
+    return { message: 'cart deleted succesfuly' };
   }
 }

@@ -10,9 +10,12 @@ import { ProductsModule } from '../products/products.module';
 import { CouponService } from '../coupon/coupon.service';
 import { CouponRepository } from '../coupon/coupon.repository';
 import { MailModule } from '../mail/mail.module';
+import { CartsModule } from '../carts/carts.module';
+import { CartsService } from '../carts/carts.service';
+import { CartsRepository } from '../carts/carts.repository';
 
 @Module({
-  imports: [UsersModule, ProductsModule, MailModule],
+  imports: [UsersModule, ProductsModule, MailModule, CartsModule],
   controllers: [MercadopagoController],
   providers: [
     MercadopagoService,
@@ -22,6 +25,8 @@ import { MailModule } from '../mail/mail.module';
     ProductsService,
     CouponService,
     CouponRepository,
+    CartsService,
+    CartsRepository,
   ],
 })
 export class MercadopagoModule {}

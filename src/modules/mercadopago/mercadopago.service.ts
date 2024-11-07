@@ -7,6 +7,7 @@ import { OrdersService } from '../orders/orders.service';
 import { ProductsService } from '../products/products.service';
 import { CouponService } from '../coupon/coupon.service';
 import { SelectUserDto } from '../../../db/schemas/users.schema';
+import { CartsService } from '../carts/carts.service';
 
 @Injectable()
 export class MercadopagoService {
@@ -14,6 +15,7 @@ export class MercadopagoService {
     private ordersService: OrdersService,
     private productsService: ProductsService,
     private couponService: CouponService,
+    private cartService: CartsService,
   ) {}
 
   async create(body: CreateMercadopagoDto, user: SelectUserDto) {
@@ -145,6 +147,8 @@ export class MercadopagoService {
     };
 
     const preference = await new Preference(mpClient).create(orderBody);
+
+    await this.cartService.deleteCart(user.id);
 
     return { url: preference.init_point, statusCode: 201 };
   }
