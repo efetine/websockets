@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { ordersRepository } from './orders.repository';
 import {
   PaginationByUserDto,
   PaginationCursorNumberDto,
-  PaginationDto,
 } from '../../schemas/pagination.dto';
+import { CreateOrderDto } from './dto/create-order-dto';
+import { SelectOrder, UpdateOrder } from '../../../db/schemas/orders.schema';
+import { PaginatedOrdersDto } from './dto/paginated-orders.dto';
 
 @Injectable()
 export class OrdersService {
@@ -22,7 +23,9 @@ export class OrdersService {
     return dbResponse;
   }
 
-  async findAllByUser(paginationByUserDto: PaginationByUserDto) {
+  async findAllByUser(
+    paginationByUserDto: PaginationByUserDto,
+  ): Promise<PaginatedOrdersDto> {
     return await this.ordersRepository.getOrdersByUser(paginationByUserDto);
   }
 
@@ -30,7 +33,13 @@ export class OrdersService {
     return await this.ordersRepository.getOrderById(id);
   }
 
-  async findAllAdmin(paginationDto: PaginationCursorNumberDto) {
+  async findAllAdmin(
+    paginationDto: PaginationCursorNumberDto,
+  ): Promise<PaginatedOrdersDto> {
     return await this.ordersRepository.findAllAdmin(paginationDto);
+  }
+
+  async update(id: SelectOrder['id'], updateOrderDto: UpdateOrder) {
+    return await this.ordersRepository.update(id, updateOrderDto);
   }
 }

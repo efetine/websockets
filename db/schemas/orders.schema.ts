@@ -9,7 +9,8 @@ import {
 } from 'drizzle-orm/pg-core';
 import { users } from './users.schema';
 import { products } from './products.schema';
-import { createInsertSchema } from 'drizzle-zod';
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+import z from 'zod';
 
 export const orderStatusEnum = pgEnum('order_status', [
   'pending',
@@ -40,9 +41,14 @@ export const orders = pgTable('orders', {
   shippingAddress: text('shipping_address'),
 });
 
-export type insertOrders = typeof orders.$inferInsert;
-export type selectOrders = typeof orders.$inferSelect;
-export const InsertOrderSchema = createInsertSchema(orders);
+export const selectOrderSchema = createSelectSchema(orders);
+export type SelectOrder = z.infer<typeof selectOrderSchema>;
+
+export const insertOrderSchema = createInsertSchema(orders);
+export type InsertOrder = z.infer<typeof insertOrderSchema>;
+
+export const updateOrderSchema = insertOrderSchema.omit({ id: true }).partial();
+export type UpdateOrder = z.infer<typeof updateOrderSchema>;
 
 export const ordersRelations = relations(orders, ({ one }) => ({
   user: one(users, { fields: [orders.userId], references: [users.id] }),

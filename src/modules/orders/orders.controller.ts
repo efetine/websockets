@@ -1,20 +1,22 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
-  Delete,
   Query,
-  ParseIntPipe,
   BadRequestException,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
 import { ApiTags } from '@nestjs/swagger';
-import { paginationByUserDto, paginationCursorNumberDto, paginationDto } from '../../schemas/pagination.dto';
+import {
+  paginationByUserDto,
+  paginationCursorNumberDto,
+} from '../../schemas/pagination.dto';
+import {
+  UpdateOrder,
+  updateOrderSchema,
+} from '../../../db/schemas/orders.schema';
 
 @Controller('orders')
 @ApiTags('Orders')
@@ -27,7 +29,7 @@ export class OrdersController {
     @Query('cursor') cursor: number,
     @Query('userId') userId: string,
   ) {
-    const validation = paginationByUserDto.safeParse({ cursor, limit, userId })
+    const validation = paginationByUserDto.safeParse({ cursor, limit, userId });
 
     if (validation.success === false) {
       throw new BadRequestException(validation.error.issues);
@@ -51,5 +53,17 @@ export class OrdersController {
   @Get(':id')
   findOne(@Param('id') id: number) {
     return this.ordersService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: number, @Body() updateOrderDto: UpdateOrder) {
+    console.log({ id, updateOrderDto });
+    const validation = updateOrderSchema.safeParse(updateOrderDto);
+
+    if (validation.success === false) {
+      throw new BadRequestException(validation.error.issues);
+    }
+
+    return this.ordersService.update(id, updateOrderDto);
   }
 }

@@ -3,18 +3,20 @@ import {
   BadRequestException,
   Injectable,
 } from '@nestjs/common';
-import { CreateOrderDto } from './dto/create-order.dto';
 import { db } from '../../config/db';
 import {
   orders,
   ordersDetails,
-  selectOrders,
+  SelectOrder,
+  UpdateOrder,
 } from '../../../db/schemas/orders.schema';
 import { and, asc, eq, gte } from 'drizzle-orm';
 import {
   PaginationByUserDto,
   PaginationCursorNumberDto,
 } from '../../schemas/pagination.dto';
+import { CreateOrderDto } from './dto/create-order-dto';
+import { PaginatedOrdersDto } from './dto/paginated-orders.dto';
 
 @Injectable()
 export class ordersRepository {
@@ -23,7 +25,6 @@ export class ordersRepository {
       .insert(orders)
       .values({
         userId: data.userId,
-        mpOrderId: data.mpOrderID,
         amount: data.amount,
       })
       .returning()) as any;
@@ -68,10 +69,7 @@ export class ordersRepository {
     userId,
     limit,
     cursor,
-  }: PaginationByUserDto): Promise<{
-    data: selectOrders[] | [];
-    nextCursor: number | null;
-  }> {
+  }: PaginationByUserDto): Promise<PaginatedOrdersDto> {
     const where = [eq(orders.userId, userId)];
 
     if (cursor) where.push(gte(orders.id, cursor));
@@ -84,7 +82,7 @@ export class ordersRepository {
         limit: limit + NEXT_CURSOR_ITEM,
         orderBy: asc(orders.id),
       })
-      .catch((err) => {
+      .catch(() => {
         throw new BadRequestException('There are no more orders available');
       });
     let nextCursor: number | null = null;
@@ -101,7 +99,7 @@ export class ordersRepository {
 
     return {
       data: selectedOrders,
-      nextCursor,
+      nextCursor: String(nextCursor),
     };
   }
 
@@ -119,10 +117,10 @@ export class ordersRepository {
     return dbResponse;
   }
 
-  async findAllAdmin({ cursor, limit }: PaginationCursorNumberDto): Promise<{
-    data: selectOrders[] | [];
-    nextCursor: number | null;
-  }> {
+  async findAllAdmin({
+    cursor,
+    limit,
+  }: PaginationCursorNumberDto): Promise<PaginatedOrdersDto> {
     let where: any = undefined;
 
     if (cursor) where = gte(orders.id, cursor);
@@ -133,8 +131,16 @@ export class ordersRepository {
         where,
         limit: limit + NEXT_CURSOR_ITEM,
         orderBy: asc(orders.id),
+        with: {
+          user: {
+            columns: {
+              id: true,
+              email: true,
+            },
+          },
+        },
       })
-      .catch((err) => {
+      .catch(() => {
         throw new BadRequestException('There are no more orders available');
       });
 
@@ -152,7 +158,16 @@ export class ordersRepository {
 
     return {
       data: selectedOrders,
-      nextCursor,
+      nextCursor: String(nextCursor),
     };
+  }
+
+  async update(id: SelectOrder['id'], data: UpdateOrder) {
+    const dbResponse = await db
+      .update(orders)
+      .set(data)
+      .where(eq(orders.id, id));
+
+    return dbResponse;
   }
 }
