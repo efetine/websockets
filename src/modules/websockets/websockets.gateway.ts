@@ -9,9 +9,11 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-const PORT = Number(process.env.PORT) || 443;
-
-@WebSocketGateway(PORT)
+@WebSocketGateway({
+  cors: {
+    origin: '*',
+  },
+})
 export class WebsocketGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -20,7 +22,7 @@ export class WebsocketGateway
 
   handleConnection(client: Socket) {
     console.log('Socket ID:', client.id);
-    console.log(client.handshake)
+    console.log(client.handshake);
     const isAdmin = client.handshake.query.role === 'admin';
 
     if (isAdmin) {
