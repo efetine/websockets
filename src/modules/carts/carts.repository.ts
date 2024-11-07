@@ -60,6 +60,8 @@ export class CartsRepository {
       title: product.product?.name,
       image: product.product?.imageUrl,
       qty: product.quantity,
+      type: product.product.type,
+      stock: product.product.stock,
     }));
 
     if (!data)
