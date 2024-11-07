@@ -99,62 +99,12 @@ export class ProductsController {
     },
   })
   @ApiOperation({ summary: 'Create Product' })
-  async create(
-    @Body() body: InsertProduct,
-    @UploadedFiles() files: Express.Multer.File[],
-  ) {
-    const parsedBody = {
-      ...body,
-      price: Number(body.price),
-      stock: Number(body.stock),
-    };
-
-    if (isNaN(parsedBody.price) || isNaN(parsedBody.stock)) {
-      throw new BadRequestException(
-        'El precio y el stock deben ser números válidos.',
-      );
-    }
-
-    const validation = productInsertSchema.safeParse(parsedBody);
+  async create(@Body() body: InsertProduct) {
+    const validation = productInsertSchema.safeParse(body);
     if (!validation.success) {
       throw new BadRequestException(validation.error.issues);
     }
-
-    let imageResults: { public_id: string; secure_url: string }[] = [];
-
-    try {
-      if (files && files.length > 0) {
-        imageResults = await this.filesService.uploadMultipleImages(files);
-      }
-    } catch (error: any) {
-      throw new BadRequestException(
-        `Error subiendo las imágenes: ${error.message}`,
-      );
-    }
-
-    const productData = {
-      ...validation.data,
-    };
-
-    const product = await this.productsService.createProduct(productData);
-
-    try {
-      if (imageResults.length > 0) {
-        if (product.id) {
-          await this.filesService.saveImages(imageResults, product.id);
-        } else {
-          throw new Error(
-            'El producto no se ha creado correctamente y no tiene un ID.',
-          );
-        }
-      }
-    } catch (error) {
-      throw new BadRequestException(
-        'Error guardando las imágenes en el producto.',
-      );
-    }
-
-    return product;
+    return await this.productsService.createProduct(validation.data);
   }
 
   @Get()
